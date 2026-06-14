@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Hay Day Optimizer",
+    "slug": "dayhay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#5C9E2E"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.dayhay.optimizer"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#5C9E2E"
+      },
+      "package": "com.dayhay.optimizer"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router"],
+    "scheme": "dayhay",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
