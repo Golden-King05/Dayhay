@@ -37,11 +37,6 @@
         }
       ]
     ],
-    "scheme": "dayhay",
-    "extra": {
-      "eas": {
-        "projectId": "dayhay-optimizer"
-      }
-    }
+    "scheme": "dayhay"
   }
 }
