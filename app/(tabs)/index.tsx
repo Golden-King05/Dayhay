@@ -5,419 +5,287 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
+  ImageBackground,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
-
-interface StatItemProps {
-  value: string;
-  label: string;
-}
-
-function StatItem({ value, label }: StatItemProps) {
-  return (
-    <View style={styles.statItem}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
-interface NavCardProps {
-  emoji: string;
-  title: string;
-  description: string;
-  onPress: () => void;
-  color: string;
-}
-
-function NavCard({ emoji, title, description, onPress, color }: NavCardProps) {
-  return (
-    <TouchableOpacity
-      style={[styles.navCard, { borderLeftColor: color, borderLeftWidth: 4 }]}
-      onPress={onPress}
-      activeOpacity={0.75}
-    >
-      <Text style={styles.navCardEmoji}>{emoji}</Text>
-      <View style={styles.navCardText}>
-        <Text style={styles.navCardTitle}>{title}</Text>
-        <Text style={styles.navCardDesc}>{description}</Text>
-      </View>
-      <Text style={styles.navCardArrow}>›</Text>
-    </TouchableOpacity>
-  );
-}
-
-interface InfoRowProps {
-  emoji: string;
-  text: string;
-}
-
-function InfoRow({ emoji, text }: InfoRowProps) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoEmoji}>{emoji}</Text>
-      <Text style={styles.infoText}>{text}</Text>
-    </View>
-  );
-}
+import { products } from '../../data/products';
+import { machines } from '../../data/machines';
+import { crops } from '../../data/crops';
+import { getTopProducts, formatTime } from '../../utils/optimizer';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const topProducts = getTopProducts(products, 3);
+  const uniqueMachines = new Set(products.map((p) => p.machineId)).size;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Hero header */}
-        <View style={styles.hero}>
-          <View style={styles.heroIconRow}>
-            <Text style={styles.heroIcon}>🌾</Text>
-            <Text style={styles.heroIcon}>🌽</Text>
-            <Text style={styles.heroIcon}>🍎</Text>
-          </View>
-          <Text style={styles.heroTitle}>Hay Day Optimizer</Text>
-          <Text style={styles.heroSubtitle}>
-            Maximize your farm's coin production with real-time profit calculations
-          </Text>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Hero Banner */}
+        <View style={styles.heroBanner}>
+          <Text style={styles.heroEmoji}>🌾🚜🌽</Text>
+          <Text style={styles.heroTitle}>Welcome to{'\n'}Hay Day Optimizer</Text>
+          <Text style={styles.heroSubtitle}>Maximize your farm profits with smart production planning</Text>
         </View>
 
-        {/* Stats row */}
+        {/* Quick Stats */}
         <View style={styles.statsRow}>
-          <StatItem value="40+" label="Products" />
-          <View style={styles.statsDivider} />
-          <StatItem value="10" label="Machines" />
-          <View style={styles.statsDivider} />
-          <StatItem value="Live" label="Calc" />
-        </View>
-
-        {/* Navigation cards */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Access</Text>
-
-          <NavCard
-            emoji="⚡"
-            title="Top Products"
-            description="Best coins/hour ranked by efficiency"
-            onPress={() => router.push('/(tabs)/optimizer')}
-            color={Colors.primary}
-          />
-          <NavCard
-            emoji="📋"
-            title="All Items"
-            description="Browse and search every product"
-            onPress={() => router.push('/(tabs)/products')}
-            color={Colors.accent}
-          />
-          <NavCard
-            emoji="🏭"
-            title="By Machine"
-            description="Filter products by production machine"
-            onPress={() => router.push('/(tabs)/optimizer')}
-            color={Colors.primaryLight}
-          />
-        </View>
-
-        {/* About section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>How it Works</Text>
-          <View style={styles.infoCard}>
-            <InfoRow
-              emoji="⚡"
-              text="Coins/hour = (Sell Price ÷ Production Time) × 60"
-            />
-            <View style={styles.infoSeparator} />
-            <InfoRow
-              emoji="🟢"
-              text="High efficiency: 60+ coins/hour"
-            />
-            <View style={styles.infoSeparator} />
-            <InfoRow
-              emoji="🟡"
-              text="Medium efficiency: 30–59 coins/hour"
-            />
-            <View style={styles.infoSeparator} />
-            <InfoRow
-              emoji="🔴"
-              text="Low efficiency: under 30 coins/hour"
-            />
-            <View style={styles.infoSeparator} />
-            <InfoRow
-              emoji="✨"
-              text="Ingredients marked with * are produced items, not raw crops"
-            />
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{products.length}</Text>
+            <Text style={styles.statLabel}>Products</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{uniqueMachines}</Text>
+            <Text style={styles.statLabel}>Machines</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{crops.length}</Text>
+            <Text style={styles.statLabel}>Crops</Text>
           </View>
         </View>
 
-        {/* Machines section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>All Machines</Text>
-          <View style={styles.machineGrid}>
-            {MACHINES.map((m) => (
-              <View key={m.id} style={styles.machineChip}>
-                <Text style={styles.machineEmoji}>{m.emoji}</Text>
-                <Text style={styles.machineName}>{m.name}</Text>
-                <Text style={styles.machineLevel}>Lvl {m.level}</Text>
-              </View>
-            ))}
-          </View>
+        {/* Quick Action Cards */}
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionCards}>
+          <TouchableOpacity
+            style={[styles.actionCard, { backgroundColor: '#E8F5E9' }]}
+            onPress={() => router.push('/optimizer')}
+          >
+            <Text style={styles.actionEmoji}>⚡</Text>
+            <Text style={styles.actionTitle}>Best Products</Text>
+            <Text style={styles.actionDesc}>Find highest coins/hour production</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionCard, { backgroundColor: '#FFF3E0' }]}
+            onPress={() => router.push('/optimizer')}
+          >
+            <Text style={styles.actionEmoji}>🌾</Text>
+            <Text style={styles.actionTitle}>Crop Guide</Text>
+            <Text style={styles.actionDesc}>Best crops to grow for profit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionCard, { backgroundColor: '#E3F2FD' }]}
+            onPress={() => router.push('/products')}
+          >
+            <Text style={styles.actionEmoji}>📦</Text>
+            <Text style={styles.actionTitle}>All Items</Text>
+            <Text style={styles.actionDesc}>Browse every product in the game</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            🌱 Built for Hay Day farmers who want to earn more coins
-          </Text>
+        {/* Top Producers */}
+        <Text style={styles.sectionTitle}>Top Producers 🏆</Text>
+        {topProducts.map((product, idx) => (
+          <View key={product.id} style={styles.topProductRow}>
+            <View style={[styles.topRankBadge, idx === 0 && styles.gold, idx === 1 && styles.silver, idx === 2 && styles.bronze]}>
+              <Text style={styles.topRankText}>{idx + 1}</Text>
+            </View>
+            <Text style={styles.topProductIcon}>{product.icon}</Text>
+            <View style={styles.topProductInfo}>
+              <Text style={styles.topProductName}>{product.name}</Text>
+              <Text style={styles.topProductMachine}>{product.machineEmoji} {product.machineName}</Text>
+            </View>
+            <View style={styles.topProductStats}>
+              <Text style={styles.topProductCPH}>{product.coinsPerHour}</Text>
+              <Text style={styles.topProductCPHLabel}>coins/hr</Text>
+            </View>
+          </View>
+        ))}
+
+        {/* Tips */}
+        <Text style={styles.sectionTitle}>Pro Tips 💡</Text>
+        <View style={styles.tipsCard}>
+          {[
+            '🥛 Dairy products (Cream, Butter) have excellent coins/hour ratios',
+            '🍞 Bakery items use Dairy products for massive profit boosts',
+            '⏱ Short production times compound faster — run them continuously',
+            '🌾 Wheat is the backbone of many high-value recipes',
+            '🔥 BBQ Grill items convert crops into much higher-value goods',
+          ].map((tip, i) => (
+            <Text key={i} style={styles.tipText}>{tip}</Text>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const MACHINES = [
-  { id: 'feedMill', emoji: '🌾', name: 'Feed Mill', level: 1 },
-  { id: 'bakery', emoji: '🍞', name: 'Bakery', level: 2 },
-  { id: 'bbqGrill', emoji: '🔥', name: 'BBQ Grill', level: 3 },
-  { id: 'sugarMill', emoji: '🍬', name: 'Sugar Mill', level: 5 },
-  { id: 'dairy', emoji: '🥛', name: 'Dairy', level: 7 },
-  { id: 'sewingMachine', emoji: '🧵', name: 'Sewing', level: 13 },
-  { id: 'pieOven', emoji: '🥧', name: 'Pie Oven', level: 14 },
-  { id: 'juicer', emoji: '🥤', name: 'Juicer', level: 16 },
-  { id: 'popcornPot', emoji: '🍿', name: 'Popcorn Pot', level: 19 },
-  { id: 'iceCreamMachine', emoji: '🍦', name: 'Ice Cream', level: 24 },
-];
-
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-  },
-  scroll: {
+  container: {
     flex: 1,
     backgroundColor: Colors.background,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
-
-  // Hero
-  hero: {
+  heroBanner: {
     backgroundColor: Colors.primary,
-    paddingTop: 24,
-    paddingBottom: 32,
     paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 28,
     alignItems: 'center',
   },
-  heroIconRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
-  },
-  heroIcon: {
-    fontSize: 36,
+  heroEmoji: {
+    fontSize: 40,
+    marginBottom: 8,
   },
   heroTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#fff',
     textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: -0.5,
+    lineHeight: 32,
   },
   heroSubtitle: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
+    color: '#D4EDAA',
     textAlign: 'center',
+    marginTop: 8,
     lineHeight: 20,
-    paddingHorizontal: 10,
   },
-
-  // Stats
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: Colors.primaryDark,
-    marginTop: -1,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    marginHorizontal: 16,
+    marginTop: -16,
+    gap: 10,
   },
-  statItem: {
+  statCard: {
     flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.accentLight,
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  statsDivider: {
-    width: 1,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    marginVertical: 4,
-  },
-
-  // Sections
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.text,
-    marginBottom: 12,
-    letterSpacing: -0.3,
-  },
-
-  // Nav cards
-  navCard: {
     backgroundColor: Colors.cardBackground,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-    flexDirection: 'row',
+    padding: 14,
     alignItems: 'center',
-    gap: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.07,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  navCardEmoji: {
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: Colors.primary,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.text,
+    marginHorizontal: 16,
+    marginTop: 22,
+    marginBottom: 10,
+  },
+  actionCards: {
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  actionCard: {
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  actionEmoji: {
     fontSize: 28,
   },
-  navCardText: {
-    flex: 1,
-  },
-  navCardTitle: {
+  actionTitle: {
     fontSize: 15,
     fontWeight: '700',
     color: Colors.text,
     marginBottom: 2,
   },
-  navCardDesc: {
+  actionDesc: {
     fontSize: 12,
-    color: Colors.textLight,
-    lineHeight: 16,
+    color: Colors.textSecondary,
+    flex: 1,
+    flexWrap: 'wrap',
   },
-  navCardArrow: {
-    fontSize: 22,
-    color: Colors.textMuted,
-    fontWeight: '300',
-  },
-
-  // Info card
-  infoCard: {
+  topProductRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.cardBackground,
+    marginHorizontal: 16,
+    marginBottom: 8,
     borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  topRankBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.textLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gold: { backgroundColor: '#FFD700' },
+  silver: { backgroundColor: '#C0C0C0' },
+  bronze: { backgroundColor: '#CD7F32' },
+  topRankText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  topProductIcon: {
+    fontSize: 26,
+  },
+  topProductInfo: {
+    flex: 1,
+  },
+  topProductName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  topProductMachine: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  topProductStats: {
+    alignItems: 'flex-end',
+  },
+  topProductCPH: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.highEfficiency,
+  },
+  topProductCPHLabel: {
+    fontSize: 10,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  tipsCard: {
+    backgroundColor: Colors.cardBackground,
+    marginHorizontal: 16,
+    borderRadius: 14,
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 8,
     gap: 10,
   },
-  infoEmoji: {
-    fontSize: 18,
-    marginTop: 1,
-  },
-  infoText: {
-    flex: 1,
+  tipText: {
     fontSize: 13,
     color: Colors.text,
-    lineHeight: 18,
-    fontWeight: '500',
-  },
-  infoSeparator: {
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-
-  // Machine grid
-  machineGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  machineChip: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minWidth: '28%',
-    flex: 1,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  machineEmoji: {
-    fontSize: 22,
-    marginBottom: 4,
-  },
-  machineName: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  machineLevel: {
-    fontSize: 10,
-    color: Colors.textMuted,
-    fontWeight: '500',
-  },
-
-  // Footer
-  footer: {
-    marginTop: 32,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 19,
   },
 });

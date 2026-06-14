@@ -5,109 +5,98 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { Colors } from '../constants/Colors';
-import { SortBy } from '../utils/optimizer';
+import { SortKey } from '../utils/optimizer';
 
 interface SortOption {
-  key: SortBy;
+  key: SortKey;
   label: string;
-}
-
-interface MachineFilter {
-  id: string | null;
-  label: string;
+  icon: string;
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { key: 'coinsPerHour', label: '⚡ Coins/hr' },
-  { key: 'sellPrice', label: '🪙 Price' },
-  { key: 'productionMinutes', label: '⏱ Time' },
-  { key: 'level', label: '⭐ Level' },
+  { key: 'coinsPerHour', label: 'Coins/Hr', icon: '⚡' },
+  { key: 'sellPrice', label: 'Price', icon: '🪙' },
+  { key: 'productionMinutes', label: 'Time', icon: '⏱' },
+  { key: 'levelRequired', label: 'Level', icon: '⭐' },
 ];
 
+interface MachineFilter {
+  id: string;
+  label: string;
+  emoji: string;
+}
+
 const MACHINE_FILTERS: MachineFilter[] = [
-  { id: null, label: 'All' },
-  { id: 'feedMill', label: '🌾 Feed Mill' },
-  { id: 'dairy', label: '🥛 Dairy' },
-  { id: 'sugarMill', label: '🍬 Sugar Mill' },
-  { id: 'bakery', label: '🍞 Bakery' },
-  { id: 'sewingMachine', label: '🧵 Sewing' },
-  { id: 'bbqGrill', label: '🔥 BBQ' },
-  { id: 'pieOven', label: '🥧 Pie Oven' },
-  { id: 'juicer', label: '🥤 Juicer' },
-  { id: 'popcornPot', label: '🍿 Popcorn' },
-  { id: 'iceCreamMachine', label: '🍦 Ice Cream' },
+  { id: 'all', label: 'All', emoji: '🏡' },
+  { id: 'feed_mill', label: 'Feed Mill', emoji: '🏭' },
+  { id: 'dairy', label: 'Dairy', emoji: '🥛' },
+  { id: 'sugar_mill', label: 'Sugar Mill', emoji: '🍬' },
+  { id: 'bakery', label: 'Bakery', emoji: '🍞' },
+  { id: 'sewing_machine', label: 'Sewing', emoji: '🧵' },
+  { id: 'bbq_grill', label: 'BBQ', emoji: '🔥' },
+  { id: 'pie_oven', label: 'Pie Oven', emoji: '🥧' },
+  { id: 'juice_press', label: 'Juice', emoji: '🧃' },
+  { id: 'smoothie_mixer', label: 'Smoothie', emoji: '🥤' },
+  { id: 'ice_cream_maker', label: 'Ice Cream', emoji: '🍦' },
+  { id: 'jam_maker', label: 'Jam', emoji: '🫙' },
+  { id: 'popcorn_pot', label: 'Popcorn', emoji: '🍿' },
 ];
 
 interface FilterBarProps {
-  sortBy: SortBy;
-  onSortChange: (sort: SortBy) => void;
-  selectedMachine: string | null;
-  onMachineChange: (machineId: string | null) => void;
+  selectedSort: SortKey;
+  selectedMachine: string;
+  onSortChange: (key: SortKey) => void;
+  onMachineChange: (machineId: string) => void;
 }
 
-export default function FilterBar({
-  sortBy,
-  onSortChange,
+export function FilterBar({
+  selectedSort,
   selectedMachine,
+  onSortChange,
   onMachineChange,
 }: FilterBarProps) {
   return (
     <View style={styles.container}>
-      {/* Sort row */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionLabel}>Sort by</Text>
-      </View>
+      <Text style={styles.sectionLabel}>Sort By</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.rowContent}
-        style={styles.scrollRow}
+        contentContainerStyle={styles.scrollContent}
       >
-        {SORT_OPTIONS.map((option) => {
-          const isActive = sortBy === option.key;
-          return (
-            <TouchableOpacity
-              key={option.key}
-              style={[styles.chip, isActive && styles.chipActive]}
-              onPress={() => onSortChange(option.key)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+        {SORT_OPTIONS.map((opt) => (
+          <TouchableOpacity
+            key={opt.key}
+            style={[styles.chip, selectedSort === opt.key && styles.chipActive]}
+            onPress={() => onSortChange(opt.key)}
+          >
+            <Text style={styles.chipIcon}>{opt.icon}</Text>
+            <Text style={[styles.chipText, selectedSort === opt.key && styles.chipTextActive]}>
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
-      {/* Machine filter row */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionLabel}>Machine</Text>
-      </View>
+      <Text style={styles.sectionLabel}>Machine</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.rowContent}
-        style={styles.scrollRow}
+        contentContainerStyle={styles.scrollContent}
       >
-        {MACHINE_FILTERS.map((filter) => {
-          const isActive = selectedMachine === filter.id;
-          return (
-            <TouchableOpacity
-              key={filter.id ?? 'all'}
-              style={[styles.chip, isActive && styles.chipActive]}
-              onPress={() => onMachineChange(filter.id)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+        {MACHINE_FILTERS.map((mf) => (
+          <TouchableOpacity
+            key={mf.id}
+            style={[styles.chip, selectedMachine === mf.id && styles.chipActiveMachine]}
+            onPress={() => onMachineChange(mf.id)}
+          >
+            <Text style={styles.chipIcon}>{mf.emoji}</Text>
+            <Text style={[styles.chipText, selectedMachine === mf.id && styles.chipTextActiveMachine]}>
+              {mf.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
   );
@@ -116,60 +105,57 @@ export default function FilterBar({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.cardBackground,
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  sectionHeader: {
-    paddingHorizontal: 14,
-    paddingTop: 4,
-    paddingBottom: 4,
   },
   sectionLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    color: Colors.textMuted,
+    color: Colors.textLight,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
+    paddingHorizontal: 16,
+    marginBottom: 6,
+    marginTop: 4,
   },
-  scrollRow: {
-    marginBottom: 4,
-  },
-  rowContent: {
+  scrollContent: {
     paddingHorizontal: 12,
-    gap: 8,
-    paddingRight: 16,
+    gap: 6,
+    paddingBottom: 8,
   },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
     backgroundColor: Colors.background,
     borderWidth: 1.5,
     borderColor: Colors.border,
+    gap: 4,
   },
   chipActive: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primary + '20',
     borderColor: Colors.primary,
   },
-  chipText: {
+  chipActiveMachine: {
+    backgroundColor: Colors.accent + '25',
+    borderColor: Colors.accent,
+  },
+  chipIcon: {
     fontSize: 13,
+  },
+  chipText: {
+    fontSize: 12,
     fontWeight: '600',
-    color: Colors.textLight,
+    color: Colors.textSecondary,
   },
   chipTextActive: {
-    color: '#FFFFFF',
+    color: Colors.primary,
+  },
+  chipTextActiveMachine: {
+    color: Colors.accentDark,
   },
 });

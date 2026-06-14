@@ -1,65 +1,39 @@
 import { Product } from '../data/products';
 
-export interface ProductWithStats extends Product {
-  coinsPerHour: number;
-  efficiency: 'high' | 'medium' | 'low';
-}
-
-export function calculateCoinsPerHour(product: Product): number {
-  return Math.round((product.sellPrice / product.productionMinutes) * 60);
-}
-
-export function getEfficiency(coinsPerHour: number): 'high' | 'medium' | 'low' {
-  if (coinsPerHour >= 60) return 'high';
-  if (coinsPerHour >= 30) return 'medium';
-  return 'low';
-}
-
-export function enrichProducts(products: Product[]): ProductWithStats[] {
-  return products.map((p) => {
-    const coinsPerHour = calculateCoinsPerHour(p);
-    return {
-      ...p,
-      coinsPerHour,
-      efficiency: getEfficiency(coinsPerHour),
-    };
-  });
-}
-
-export type SortBy = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'level';
+export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired';
+export type SortOrder = 'asc' | 'desc';
 
 export function sortProducts(
-  products: ProductWithStats[],
-  sortBy: SortBy,
-): ProductWithStats[] {
+  products: Product[],
+  sortKey: SortKey,
+  sortOrder: SortOrder = 'desc'
+): Product[] {
   return [...products].sort((a, b) => {
-    if (sortBy === 'coinsPerHour') return b.coinsPerHour - a.coinsPerHour;
-    if (sortBy === 'sellPrice') return b.sellPrice - a.sellPrice;
-    if (sortBy === 'productionMinutes') return a.productionMinutes - b.productionMinutes;
-    if (sortBy === 'level') return a.level - b.level;
-    return 0;
+    const aVal = a[sortKey];
+    const bVal = b[sortKey];
+    if (sortOrder === 'desc') return bVal - aVal;
+    return aVal - bVal;
   });
 }
 
-export function filterByMachine(
-  products: ProductWithStats[],
-  machineId: string | null,
-): ProductWithStats[] {
-  if (!machineId) return products;
+export function filterByMachine(products: Product[], machineId: string | null): Product[] {
+  if (!machineId || machineId === 'all') return products;
   return products.filter((p) => p.machineId === machineId);
 }
 
-export function filterBySearch(
-  products: ProductWithStats[],
-  query: string,
-): ProductWithStats[] {
+export function searchProducts(products: Product[], query: string): Product[] {
   if (!query.trim()) return products;
-  const lower = query.toLowerCase();
+  const q = query.toLowerCase();
   return products.filter(
     (p) =>
-      p.name.toLowerCase().includes(lower) ||
-      p.machineName.toLowerCase().includes(lower),
+      p.name.toLowerCase().includes(q) ||
+      p.machineName.toLowerCase().includes(q) ||
+      p.ingredients.some((i) => i.itemName.toLowerCase().includes(q))
   );
+}
+
+export function getTopProducts(products: Product[], limit: number = 5): Product[] {
+  return sortProducts(products, 'coinsPerHour', 'desc').slice(0, limit);
 }
 
 export function formatTime(minutes: number): string {
@@ -68,4 +42,12 @@ export function formatTime(minutes: number): string {
   const mins = minutes % 60;
   if (mins === 0) return `${hours}h`;
   return `${hours}h ${mins}m`;
+}
+
+export function getEfficiencyColor(efficiency: 'high' | 'medium' | 'low'): string {
+  switch (efficiency) {
+    case 'high': return '#2E7D32';
+    case 'medium': return '#F57C00';
+    case 'low': return '#C62828';
+  }
 }

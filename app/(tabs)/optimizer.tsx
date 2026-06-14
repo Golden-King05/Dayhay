@@ -2,128 +2,148 @@ import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
-  ListRenderItemInfo,
+  FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { products } from '../../data/products';
-import {
-  enrichProducts,
-  sortProducts,
-  filterByMachine,
-  ProductWithStats,
-  SortBy,
-} from '../../utils/optimizer';
-import FilterBar from '../../components/FilterBar';
-import ProductCard from '../../components/ProductCard';
-
-const ALL_ENRICHED = enrichProducts(products);
+import { ProductCard } from '../../components/ProductCard';
+import { FilterBar } from '../../components/FilterBar';
+import { sortProducts, filterByMachine, SortKey } from '../../utils/optimizer';
 
 export default function OptimizerScreen() {
-  const [sortBy, setSortBy] = useState<SortBy>('coinsPerHour');
-  const [selectedMachine, setSelectedMachine] = useState<string | null>(null);
+  const [selectedSort, setSelectedSort] = useState<SortKey>('coinsPerHour');
+  const [selectedMachine, setSelectedMachine] = useState('all');
+  const [sortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const displayProducts = useMemo(() => {
-    const filtered = filterByMachine(ALL_ENRICHED, selectedMachine);
-    return sortProducts(filtered, sortBy);
-  }, [sortBy, selectedMachine]);
+  const filteredAndSorted = useMemo(() => {
+    const filtered = filterByMachine(products, selectedMachine);
+    return sortProducts(filtered, selectedSort, sortOrder);
+  }, [selectedSort, selectedMachine, sortOrder]);
 
-  const renderItem = ({ item, index }: ListRenderItemInfo<ProductWithStats>) => (
-    <ProductCard product={item} rank={index + 1} />
-  );
-
-  const keyExtractor = (item: ProductWithStats) => item.id;
-
-  const ListHeader = (
-    <View style={styles.listHeader}>
-      <Text style={styles.resultCount}>
-        {displayProducts.length} product{displayProducts.length !== 1 ? 's' : ''}
-      </Text>
-      <Text style={styles.resultHint}>* = produced ingredient</Text>
-    </View>
-  );
+  const highCount = filteredAndSorted.filter((p) => p.efficiency === 'high').length;
+  const medCount = filteredAndSorted.filter((p) => p.efficiency === 'medium').length;
+  const lowCount = filteredAndSorted.filter((p) => p.efficiency === 'low').length;
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Screen header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Production Optimizer</Text>
-        <Text style={styles.headerSubtitle}>
-          Find the most profitable products for your farm
-        </Text>
-      </View>
-
-      {/* Filters */}
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <FilterBar
-        sortBy={sortBy}
-        onSortChange={setSortBy}
+        selectedSort={selectedSort}
         selectedMachine={selectedMachine}
+        onSortChange={setSelectedSort}
         onMachineChange={setSelectedMachine}
       />
 
-      {/* Product list */}
+      {/* Efficiency Summary */}
+      <View style={styles.summaryBar}>
+        <View style={styles.summaryItem}>
+          <View style={[styles.dot, { backgroundColor: Colors.highEfficiency }]} />
+          <Text style={styles.summaryText}>{highCount} High</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <View style={[styles.dot, { backgroundColor: Colors.medEfficiency }]} />
+          <Text style={styles.summaryText}>{medCount} Med</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <View style={[styles.dot, { backgroundColor: Colors.lowEfficiency }]} />
+          <Text style={styles.summaryText}>{lowCount} Low</Text>
+        </View>
+        <Text style={styles.summaryTotal}>{filteredAndSorted.length} items</Text>
+      </View>
+
       <FlatList
-        data={displayProducts}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        ListHeaderComponent={ListHeader}
+        data={filteredAndSorted}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item, index }) => (
+          <ProductCard
+            product={item}
+            rank={index + 1}
+            showRank={selectedSort === 'coinsPerHour' && index < 3}
+          />
+        )}
         contentContainerStyle={styles.listContent}
-        style={styles.list}
         showsVerticalScrollIndicator={false}
-        removeClippedSubviews
-        maxToRenderPerBatch={10}
-        windowSize={10}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyEmoji}>🔍</Text>
+            <Text style={styles.emptyText}>No products found</Text>
+          </View>
+        )}
+        ListHeaderComponent={() => (
+          <View style={styles.listHeader}>
+            <Text style={styles.listHeaderText}>
+              Tap any card to see ingredients
+            </Text>
+          </View>
+        )}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.primary,
-  },
-  header: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.4,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.80)',
-    fontWeight: '500',
-  },
-  list: {
+  container: {
     flex: 1,
     backgroundColor: Colors.background,
   },
+  summaryBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: Colors.cardBackground,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: 12,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  summaryText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  summaryTotal: {
+    marginLeft: 'auto',
+    fontSize: 12,
+    color: Colors.textLight,
+    fontWeight: '500',
+  },
   listContent: {
+    paddingTop: 8,
     paddingBottom: 24,
   },
   listHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
   },
-  resultCount: {
-    fontSize: 13,
-    fontWeight: '700',
+  listHeaderText: {
+    fontSize: 12,
     color: Colors.textLight,
+    fontStyle: 'italic',
   },
-  resultHint: {
-    fontSize: 11,
-    color: Colors.textMuted,
+  emptyState: {
+    alignItems: 'center',
+    paddingTop: 60,
+    gap: 12,
+  },
+  emptyEmoji: {
+    fontSize: 48,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    fontWeight: '600',
   },
 });
