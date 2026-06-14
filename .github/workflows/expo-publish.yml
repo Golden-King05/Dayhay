@@ -30,8 +30,8 @@ jobs:
         run: npm install
 
       - name: Initialize EAS project (first run only)
-        run: npx eas init --non-interactive --force
+        run: eas init --non-interactive --force
         continue-on-error: true
 
       - name: Publish update to Expo
-        run: npx eas update --branch production --message "Deploy from GitHub Actions" --non-interactive
+        run: eas update --branch production --message "Deploy from GitHub Actions" --non-interactive
