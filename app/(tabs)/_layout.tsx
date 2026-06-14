@@ -63,6 +63,17 @@ export default function TabLayout() {
           headerTitle: '📦 All Products',
         }}
       />
+      <Tabs.Screen
+        name="timers"
+        options={{
+          title: 'Timers',
+          tabBarLabel: 'Timers',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="alarm" size={size} color={color} />
+          ),
+          headerTitle: '⏱️ My Timers',
+        }}
+      />
     </Tabs>
   );
 }

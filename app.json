@@ -27,8 +27,21 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#5C9E2E",
+          "sounds": []
+        }
+      ]
     ],
-    "scheme": "dayhay"
+    "scheme": "dayhay",
+    "extra": {
+      "eas": {
+        "projectId": "dayhay-optimizer"
+      }
+    }
   }
 }
