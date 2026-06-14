@@ -1,84 +1,107 @@
 export interface Machine {
   id: string;
   name: string;
+  icon: string;
   emoji: string;
-  level: number;
-  backgroundColor: string;
+  levelRequired: number;
+  description: string;
 }
 
 export const machines: Machine[] = [
   {
-    id: 'feedMill',
+    id: 'feed_mill',
     name: 'Feed Mill',
-    emoji: '🌾',
-    level: 1,
-    backgroundColor: '#E8D5A3',
+    icon: 'feed-mill',
+    emoji: '🏭',
+    levelRequired: 1,
+    description: 'Produces animal feed from crops',
   },
   {
     id: 'dairy',
     name: 'Dairy',
+    icon: 'dairy',
     emoji: '🥛',
-    level: 7,
-    backgroundColor: '#D6EAF8',
+    levelRequired: 7,
+    description: 'Processes milk into dairy products',
   },
   {
-    id: 'sugarMill',
+    id: 'sugar_mill',
     name: 'Sugar Mill',
+    icon: 'sugar-mill',
     emoji: '🍬',
-    level: 5,
-    backgroundColor: '#FADBD8',
+    levelRequired: 5,
+    description: 'Converts sugarcane into sugar',
   },
   {
     id: 'bakery',
     name: 'Bakery',
+    icon: 'bakery',
     emoji: '🍞',
-    level: 2,
-    backgroundColor: '#FDEBD0',
+    levelRequired: 2,
+    description: 'Bakes bread and cakes',
   },
   {
-    id: 'sewingMachine',
+    id: 'sewing_machine',
     name: 'Sewing Machine',
+    icon: 'sewing-machine',
     emoji: '🧵',
-    level: 13,
-    backgroundColor: '#E8DAEF',
+    levelRequired: 13,
+    description: 'Crafts clothing and fabric',
   },
   {
-    id: 'bbqGrill',
+    id: 'bbq_grill',
     name: 'BBQ Grill',
+    icon: 'bbq-grill',
     emoji: '🔥',
-    level: 3,
-    backgroundColor: '#FDEDEC',
+    levelRequired: 1,
+    description: 'Grills vegetables and makes sauces',
   },
   {
-    id: 'pieOven',
+    id: 'pie_oven',
     name: 'Pie Oven',
+    icon: 'pie-oven',
     emoji: '🥧',
-    level: 14,
-    backgroundColor: '#FEF9E7',
+    levelRequired: 30,
+    description: 'Bakes delicious pies',
   },
   {
-    id: 'juicer',
-    name: 'Juicer',
+    id: 'juice_press',
+    name: 'Juice Press',
+    icon: 'juice-press',
+    emoji: '🧃',
+    levelRequired: 14,
+    description: 'Presses fruits into juice',
+  },
+  {
+    id: 'smoothie_mixer',
+    name: 'Smoothie Mixer',
+    icon: 'smoothie-mixer',
     emoji: '🥤',
-    level: 16,
-    backgroundColor: '#E8F8F5',
+    levelRequired: 35,
+    description: 'Blends smoothies from fruit',
   },
   {
-    id: 'popcornPot',
-    name: 'Popcorn Pot',
-    emoji: '🍿',
-    level: 19,
-    backgroundColor: '#FFF3CD',
-  },
-  {
-    id: 'iceCreamMachine',
-    name: 'Ice Cream Machine',
+    id: 'ice_cream_maker',
+    name: 'Ice Cream Maker',
+    icon: 'ice-cream-maker',
     emoji: '🍦',
-    level: 24,
-    backgroundColor: '#FCE4EC',
+    levelRequired: 28,
+    description: 'Makes frozen treats',
+  },
+  {
+    id: 'jam_maker',
+    name: 'Jam Maker',
+    icon: 'jam-maker',
+    emoji: '🫙',
+    levelRequired: 18,
+    description: 'Turns fruit into jam',
+  },
+  {
+    id: 'popcorn_pot',
+    name: 'Popcorn Pot',
+    icon: 'popcorn-pot',
+    emoji: '🍿',
+    levelRequired: 3,
+    description: 'Pops corn into popcorn',
   },
 ];
-
-export function getMachineById(id: string): Machine | undefined {
-  return machines.find((m) => m.id === id);
-}

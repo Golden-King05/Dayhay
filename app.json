@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#5C9E2E"
+      "backgroundColor": "#FFF9EE"
     },
     "ios": {
       "supportsTablet": false,
@@ -18,18 +18,17 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#5C9E2E"
+        "backgroundColor": "#FFF9EE"
       },
       "package": "com.dayhay.optimizer"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router"],
-    "scheme": "dayhay",
-    "experiments": {
-      "typedRoutes": true
-    }
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "dayhay"
   }
 }
