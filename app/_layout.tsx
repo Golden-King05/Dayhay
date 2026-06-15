@@ -2,9 +2,6 @@ import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
-
-SplashScreen.preventAutoHideAsync();
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -20,10 +17,10 @@ class ErrorBoundary extends React.Component<
       return (
         <View style={{ flex: 1, backgroundColor: 'red', padding: 20, paddingTop: 60 }}>
           <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>
-            APP CRASH — please screenshot this:
+            APP CRASH:
           </Text>
           <ScrollView>
-            <Text style={{ color: 'white', fontSize: 13, fontFamily: 'monospace' }}>
+            <Text style={{ color: 'white', fontSize: 13 }}>
               {err.message}{'\n\n'}{err.stack}
             </Text>
           </ScrollView>
@@ -35,10 +32,6 @@ class ErrorBoundary extends React.Component<
 }
 
 export default function RootLayout() {
-  React.useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
-
   return (
     <ErrorBoundary>
       <StatusBar style="dark" />
