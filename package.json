@@ -19,8 +19,8 @@
     "react": "19.1.0",
     "react-native": "0.81.5",
     "@expo/vector-icons": "^15.0.0",
-    "react-native-safe-area-context": "~4.14.1",
-    "react-native-screens": "~3.37.0"
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-screens": "^4.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
