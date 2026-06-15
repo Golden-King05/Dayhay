@@ -37,6 +37,9 @@
         }
       ]
     ],
-    "scheme": "dayhay"
+    "scheme": "dayhay",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
   }
 }
