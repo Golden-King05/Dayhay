@@ -40,6 +40,14 @@
     "scheme": "dayhay",
     "runtimeVersion": {
       "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/75e9efb2-114c-489c-9a76-d0298ddb8781"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "75e9efb2-114c-489c-9a76-d0298ddb8781"
+      }
     }
   }
 }
