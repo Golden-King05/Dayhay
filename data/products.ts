@@ -218,6 +218,20 @@ const rawProducts = [
   },
   // ── Bakery ─────────────────────────────────────────────────
   {
+    id: 'bread',
+    name: 'Bread',
+    icon: '🍞',
+    machineId: 'bakery',
+    machineName: 'Bakery',
+    machineEmoji: '🍞',
+    productionMinutes: 5,
+    sellPrice: 21,
+    levelRequired: 0,
+    ingredients: [
+      { itemId: 'wheat', itemName: 'Wheat', quantity: 3, icon: '🌾' },
+    ],
+  },
+  {
     id: 'cookie',
     name: 'Cookie',
     icon: '🍪',
