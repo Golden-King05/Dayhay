@@ -128,4 +128,20 @@ export const machines: Machine[] = [
     levelRequired: 0,
     description: 'Bakes cakes and cheesecakes',
   },
+  {
+    id: 'smelter',
+    name: 'Smelter',
+    icon: 'smelter',
+    emoji: '⚙️',
+    levelRequired: 0,
+    description: 'Smelts ores into bars',
+  },
+  {
+    id: 'jeweler',
+    name: 'Jeweler',
+    icon: 'jeweler',
+    emoji: '💍',
+    levelRequired: 0,
+    description: 'Crafts jewelry from precious metals and gems',
+  },
 ];

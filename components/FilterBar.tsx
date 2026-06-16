@@ -49,6 +49,8 @@ const MACHINE_FILTERS: MachineFilter[] = [
   { id: 'jam_maker', label: 'Jam', emoji: '🫙' },
   { id: 'popcorn_pot', label: 'Popcorn', emoji: '🍿' },
   { id: 'cake_oven', label: 'Cake Oven', emoji: '🎂' },
+  { id: 'smelter', label: 'Smelter', emoji: '⚙️' },
+  { id: 'jeweler', label: 'Jeweler', emoji: '💍' },
 ];
 
 interface FilterBarProps {

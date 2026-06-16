@@ -2,12 +2,14 @@ import { crops } from '../data/crops';
 import { products } from '../data/products';
 import { trees } from '../data/trees';
 import { animals } from '../data/animals';
+import { ores } from '../data/ores';
 import { FISH_CHAIN_MINUTES, FISH_SELL_PRICE } from '../data/fishing';
 
 const cropMap = new Map(crops.map((c) => [c.id, c]));
 const productMap = new Map(products.map((p) => [p.id, p]));
 const treeMap = new Map(trees.map((t) => [t.id, t]));
 const animalMap = new Map(animals.map((a) => [a.id, a]));
+const oreMap = new Map(ores.map((o) => [o.id, o]));
 
 /**
  * Critical-path minutes to produce an item from scratch.
@@ -39,7 +41,8 @@ export function calcChainMinutes(
   }
 
   if (itemId === 'fish') return fishMinutes;
-  if (itemId === 'nectar_bush') return 0; // environmental — bees collect passively
+  if (itemId === 'nectar_bush') return 0;
+  if (oreMap.has(itemId)) return 0; // mining time varies; treated as 0 until known
 
   const product = productMap.get(itemId);
   if (!product) return 0;
