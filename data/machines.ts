@@ -120,4 +120,12 @@ export const machines: Machine[] = [
     levelRequired: 0,
     description: 'Extracts honey from honeycombs',
   },
+  {
+    id: 'cake_oven',
+    name: 'Cake Oven',
+    icon: 'cake-oven',
+    emoji: '🎂',
+    levelRequired: 0,
+    description: 'Bakes cakes and cheesecakes',
+  },
 ];
