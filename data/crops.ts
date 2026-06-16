@@ -17,10 +17,10 @@ export const crops: Crop[] = [
     id: 'wheat',
     name: 'Wheat',
     icon: '🌾',
-    growTimeMinutes: 1,
+    growTimeMinutes: 2,
     sellPrice: 3,
     levelRequired: 1,
-    coinsPerHour: cph(3, 1),
+    coinsPerHour: cph(3, 2),
   },
   {
     id: 'corn',
