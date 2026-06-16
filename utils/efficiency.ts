@@ -28,7 +28,11 @@ export function calcChainMinutes(itemId: string, _visited = new Set<string>()): 
   if (tree) return tree.cycleMinutes;
 
   const animal = animalMap.get(itemId);
-  if (animal) return animal.productionMinutes;
+  if (animal) {
+    // Full chain: grow crops → make feed → feed animal → animal produces
+    const feedChain = calcChainMinutes(animal.feedId, new Set(_visited));
+    return feedChain + animal.productionMinutes;
+  }
 
   const product = productMap.get(itemId);
   if (!product) return 0; // unknown ingredient — treat as always available
@@ -108,6 +112,7 @@ export function getChainBreakdown(
 
   const animal = animalMap.get(itemId);
   if (animal) {
+    const feedChain = calcChainMinutes(animal.feedId);
     results.push({
       itemId,
       name: animal.name,
@@ -115,9 +120,13 @@ export function getChainBreakdown(
       quantity,
       depth,
       ownMinutes: animal.productionMinutes,
-      chainMinutes: animal.productionMinutes,
+      chainMinutes: feedChain + animal.productionMinutes,
       isCriticalPath: false,
     });
+    // Show feed sub-chain
+    if (!_parentCycle.has(animal.feedId)) {
+      results.push(...getChainBreakdown(animal.feedId, quantity, depth + 1, new Set(_parentCycle)));
+    }
     return results;
   }
 

@@ -5,6 +5,7 @@ export interface Animal {
   icon: string;         // produce icon
   animalIcon: string;
   productionMinutes: number;
+  feedId: string;       // feed product required before animal produces
   sellPrice: number;
   levelRequired: number;
 }
@@ -17,6 +18,7 @@ export const animals: Animal[] = [
     icon: '🥚',
     animalIcon: '🐔',
     productionMinutes: 20,
+    feedId: 'chicken_feed',
     sellPrice: 0,
     levelRequired: 0,
   },
@@ -27,6 +29,7 @@ export const animals: Animal[] = [
     icon: '🥛',
     animalIcon: '🐄',
     productionMinutes: 60,
+    feedId: 'cow_feed',
     sellPrice: 0,
     levelRequired: 0,
   },
@@ -37,6 +40,7 @@ export const animals: Animal[] = [
     icon: '🥓',
     animalIcon: '🐷',
     productionMinutes: 240,
+    feedId: 'pig_feed',
     sellPrice: 0,
     levelRequired: 0,
   },
@@ -47,6 +51,7 @@ export const animals: Animal[] = [
     icon: '🍖',
     animalIcon: '🐏',
     productionMinutes: 30,
+    feedId: 'lamb_feed',
     sellPrice: 0,
     levelRequired: 0,
   },
@@ -57,6 +62,7 @@ export const animals: Animal[] = [
     icon: '🥛',
     animalIcon: '🐐',
     productionMinutes: 480,
+    feedId: 'goat_feed',
     sellPrice: 0,
     levelRequired: 0,
   },
@@ -67,6 +73,7 @@ export const animals: Animal[] = [
     icon: '🧶',
     animalIcon: '🐑',
     productionMinutes: 360,
+    feedId: 'sheep_feed',
     sellPrice: 0,
     levelRequired: 0,
   },
