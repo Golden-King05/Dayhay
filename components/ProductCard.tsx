@@ -25,7 +25,7 @@ export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_
 
   const chainSteps = expanded ? getChainBreakdown(product.id, 1, 0, new Set(), fishMinutes) : [];
   const chainMinutes = expanded ? calcChainMinutes(product.id, new Set(), fishMinutes) : 0;
-  const craftingValue = expanded ? calcCraftingValue(product) : null;
+  const craftingValue = calcCraftingValue(product);
 
   return (
     <TouchableOpacity
@@ -72,6 +72,25 @@ export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_
         </View>
       </View>
 
+      {craftingValue.ingredientValue > 0 && (
+        <View style={[
+          styles.profitSummary,
+          craftingValue.craftingProfit >= 0 ? styles.profitSummaryPositive : styles.profitSummaryNegative,
+        ]}>
+          <Text style={[
+            styles.profitSummaryText,
+            { color: craftingValue.craftingProfit >= 0 ? '#2E7D32' : '#C62828' },
+          ]}>
+            {craftingValue.craftingProfit >= 0 ? '💰' : '⚠️'}
+            {' '}{craftingValue.craftingProfit >= 0 ? '+' : ''}{craftingValue.craftingProfit} coins vs raw
+            {'  '}({craftingValue.markupPercent >= 0 ? '+' : ''}{craftingValue.markupPercent}%)
+          </Text>
+          <Text style={styles.profitSummaryRaw}>
+            raw: {craftingValue.ingredientValue} → crafted: {craftingValue.sellPrice}
+          </Text>
+        </View>
+      )}
+
       {expanded && (
         <View style={styles.chain}>
           <View style={styles.chainHeader}>
@@ -99,28 +118,6 @@ export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_
               </Text>
             </View>
           ))}
-          {craftingValue && craftingValue.ingredientValue > 0 && (() => {
-            const profitCPH = chainMinutes > 0
-              ? Math.round((craftingValue.craftingProfit / chainMinutes) * 60 * 10) / 10
-              : 0;
-            return (
-              <View style={[
-                styles.profitRow,
-                craftingValue.craftingProfit >= 0 ? styles.profitPositive : styles.profitNegative,
-              ]}>
-                <Text style={styles.profitLabel}>
-                  {craftingValue.craftingProfit >= 0 ? '✅ Worth crafting' : '⚠️ Sell ingredients instead'}
-                </Text>
-                <Text style={styles.profitValue}>
-                  {craftingValue.craftingProfit >= 0 ? '+' : ''}{craftingValue.craftingProfit} coins over raw
-                  {' '}({craftingValue.markupPercent >= 0 ? '+' : ''}{craftingValue.markupPercent}%)
-                </Text>
-                <Text style={styles.profitValue}>
-                  {profitCPH >= 0 ? '+' : ''}{profitCPH} added coins/hr vs selling raw
-                </Text>
-              </View>
-            );
-          })()}
           <View style={styles.chainFooter}>
             <Text style={styles.chainFooterText}>
               🪙 {product.sellPrice * product.quantityPerRun} ÷ {formatTime(chainMinutes)} = {product.coinsPerHour} coins/hr
@@ -288,26 +285,29 @@ const styles = StyleSheet.create({
     color: Colors.accentDark,
     fontWeight: '700',
   },
-  profitRow: {
+  profitSummary: {
     marginTop: 8,
-    padding: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 8,
+    borderWidth: 1,
   },
-  profitPositive: {
-    backgroundColor: Colors.success + '18',
+  profitSummaryPositive: {
+    backgroundColor: '#2E7D3210',
+    borderColor: '#2E7D3230',
   },
-  profitNegative: {
-    backgroundColor: Colors.error + '18',
+  profitSummaryNegative: {
+    backgroundColor: '#C6282810',
+    borderColor: '#C6282830',
   },
-  profitLabel: {
+  profitSummaryText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 2,
   },
-  profitValue: {
+  profitSummaryRaw: {
     fontSize: 11,
     color: Colors.textSecondary,
+    marginTop: 1,
   },
   chainFooter: {
     marginTop: 8,
