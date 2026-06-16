@@ -74,7 +74,7 @@ export const animals: Animal[] = [
     animalIcon: '🐑',
     productionMinutes: 360,
     feedId: 'sheep_feed',
-    sellPrice: 0,
+    sellPrice: 54,
     levelRequired: 0,
   },
 ];
