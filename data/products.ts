@@ -428,6 +428,21 @@ const rawProducts = [
     ],
   },
   {
+    id: 'hamburger',
+    name: 'Hamburger',
+    icon: '🍔',
+    machineId: 'bbq_grill',
+    machineName: 'BBQ Grill',
+    machineEmoji: '🔥',
+    productionMinutes: 120,
+    sellPrice: 180,
+    levelRequired: 0,
+    ingredients: [
+      { itemId: 'bread', itemName: 'Bread', quantity: 2, icon: '🍞' },
+      { itemId: 'bacon', itemName: 'Bacon', quantity: 2, icon: '🥓' },
+    ],
+  },
+  {
     id: 'fish_and_chips',
     name: 'Fish and Chips',
     icon: '🍟',
