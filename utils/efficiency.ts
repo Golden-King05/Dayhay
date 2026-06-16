@@ -1,10 +1,12 @@
 import { crops } from '../data/crops';
 import { products } from '../data/products';
 import { trees } from '../data/trees';
+import { animals } from '../data/animals';
 
 const cropMap = new Map(crops.map((c) => [c.id, c]));
 const productMap = new Map(products.map((p) => [p.id, p]));
 const treeMap = new Map(trees.map((t) => [t.id, t]));
+const animalMap = new Map(animals.map((a) => [a.id, a]));
 
 /**
  * Critical-path minutes to produce an item from scratch.
@@ -25,8 +27,11 @@ export function calcChainMinutes(itemId: string, _visited = new Set<string>()): 
   const tree = treeMap.get(itemId);
   if (tree) return tree.cycleMinutes;
 
+  const animal = animalMap.get(itemId);
+  if (animal) return animal.productionMinutes;
+
   const product = productMap.get(itemId);
-  if (!product) return 0; // animal product — treat as always available
+  if (!product) return 0; // unknown ingredient — treat as always available
 
   const maxIngredientChain = product.ingredients.reduce((max, ing) => {
     return Math.max(max, calcChainMinutes(ing.itemId, new Set(_visited)));
@@ -101,9 +106,24 @@ export function getChainBreakdown(
     return results;
   }
 
+  const animal = animalMap.get(itemId);
+  if (animal) {
+    results.push({
+      itemId,
+      name: animal.name,
+      icon: animal.icon,
+      quantity,
+      depth,
+      ownMinutes: animal.productionMinutes,
+      chainMinutes: animal.productionMinutes,
+      isCriticalPath: false,
+    });
+    return results;
+  }
+
   const product = productMap.get(itemId);
   if (!product) {
-    // Animal product or unknown source
+    // Unknown ingredient
     results.push({
       itemId,
       name: itemId.replace(/_/g, ' '),

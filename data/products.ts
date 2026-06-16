@@ -371,7 +371,7 @@ const rawProducts = [
     sellPrice: 32,
     levelRequired: 22,
     ingredients: [
-      { itemId: 'pork', itemName: 'Pork', quantity: 2, icon: '🥩' },
+      { itemId: 'bacon', itemName: 'Bacon', quantity: 2, icon: '🥓' },
       { itemId: 'chili_sauce', itemName: 'Chili Sauce', quantity: 1, icon: '🌶️' },
     ],
   },
