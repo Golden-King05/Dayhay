@@ -685,7 +685,7 @@ const rawProducts = [
     machineName: 'Loom',
     machineEmoji: '🪡',
     productionMinutes: 180,
-    sellPrice: 128,
+    sellPrice: 208,
     levelRequired: 0,
     ingredients: [
       { itemId: 'wool', itemName: 'Wool', quantity: 2, icon: '🐑' },
