@@ -91,6 +91,14 @@ export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_
         </View>
       )}
 
+      {product.ingredients.some((i) => i.itemId === 'gem') && (
+        <View style={styles.gemWarning}>
+          <Text style={styles.gemWarningText}>
+            💎 Requires a Gem — an extremely rare premium currency. Gems can also permanently upgrade machines to add extra production slots. Only craft this if you can truly spare one.
+          </Text>
+        </View>
+      )}
+
       {expanded && (
         <View style={styles.chain}>
           <View style={styles.chainHeader}>
@@ -308,6 +316,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textSecondary,
     marginTop: 1,
+  },
+  gemWarning: {
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#4A148C10',
+    borderWidth: 1,
+    borderColor: '#4A148C40',
+  },
+  gemWarningText: {
+    fontSize: 11,
+    color: '#4A148C',
+    fontWeight: '600',
+    lineHeight: 16,
   },
   chainFooter: {
     marginTop: 8,

@@ -149,6 +149,35 @@ export function getChainBreakdown(
     return results;
   }
 
+  if (itemId === 'gem') {
+    results.push({
+      itemId: 'gem',
+      name: 'Gem ⚠️ rare premium currency',
+      icon: '💎',
+      quantity,
+      depth,
+      ownMinutes: 0,
+      chainMinutes: 0,
+      isCriticalPath: false,
+    });
+    return results;
+  }
+
+  if (oreMap.has(itemId)) {
+    const ore = oreMap.get(itemId)!;
+    results.push({
+      itemId,
+      name: ore.name + ' (mine)',
+      icon: ore.icon,
+      quantity,
+      depth,
+      ownMinutes: 0,
+      chainMinutes: 0,
+      isCriticalPath: false,
+    });
+    return results;
+  }
+
   const animal = animalMap.get(itemId);
   if (animal) {
     const feedChain = calcChainMinutes(animal.feedId, new Set(), fishMinutes);
