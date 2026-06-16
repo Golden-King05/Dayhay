@@ -75,6 +75,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="storehouse"
+        options={{
+          title: 'Storehouse',
+          tabBarLabel: 'Storehouse',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="archive" size={size} color={color} />
+          ),
+          headerTitle: '🏪 Storehouse',
+        }}
+      />
+      <Tabs.Screen
         name="timers"
         options={{
           title: 'Timers',
