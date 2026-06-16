@@ -8,23 +8,64 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { crops } from '../../data/crops';
 import { ProductCard } from '../../components/ProductCard';
+import { CropCard } from '../../components/CropCard';
 import { FilterBar } from '../../components/FilterBar';
 import { products, sortProducts, filterByMachine, SortKey } from '../../utils/optimizer';
+
+type ListItem =
+  | { kind: 'product'; data: (typeof products)[0] }
+  | { kind: 'crop'; data: (typeof crops)[0] };
 
 export default function OptimizerScreen() {
   const [selectedSort, setSelectedSort] = useState<SortKey>('coinsPerHour');
   const [selectedMachine, setSelectedMachine] = useState('all');
   const [sortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const filteredAndSorted = useMemo(() => {
-    const filtered = filterByMachine(products, selectedMachine);
-    return sortProducts(filtered, selectedSort, sortOrder);
+  const rankedList = useMemo((): ListItem[] => {
+    const filteredProducts = filterByMachine(products, selectedMachine);
+    const productItems: ListItem[] = sortProducts(filteredProducts, selectedSort, sortOrder)
+      .map((p) => ({ kind: 'product', data: p }));
+
+    // Only include crops when showing all (crops don't belong to a machine)
+    if (selectedMachine !== 'all') return productItems;
+
+    const cropItems: ListItem[] = crops.map((c) => ({ kind: 'crop', data: c }));
+    const all = [...productItems, ...cropItems];
+
+    if (selectedSort === 'coinsPerHour') {
+      all.sort((a, b) => {
+        const aCPH = a.kind === 'product' ? a.data.coinsPerHour : a.data.coinsPerHour;
+        const bCPH = b.kind === 'product' ? b.data.coinsPerHour : b.data.coinsPerHour;
+        return sortOrder === 'desc' ? bCPH - aCPH : aCPH - bCPH;
+      });
+    } else if (selectedSort === 'sellPrice') {
+      all.sort((a, b) => {
+        const aVal = a.kind === 'product' ? a.data.sellPrice : a.data.sellPrice;
+        const bVal = b.kind === 'product' ? b.data.sellPrice : b.data.sellPrice;
+        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+      });
+    }
+
+    return all;
   }, [selectedSort, selectedMachine, sortOrder]);
 
-  const highCount = filteredAndSorted.filter((p) => p.efficiency === 'high').length;
-  const medCount = filteredAndSorted.filter((p) => p.efficiency === 'medium').length;
-  const lowCount = filteredAndSorted.filter((p) => p.efficiency === 'low').length;
+  const highCount = rankedList.filter((i) =>
+    i.kind === 'product'
+      ? i.data.efficiency === 'high'
+      : i.data.coinsPerHour >= 60
+  ).length;
+  const medCount = rankedList.filter((i) =>
+    i.kind === 'product'
+      ? i.data.efficiency === 'medium'
+      : i.data.coinsPerHour >= 25 && i.data.coinsPerHour < 60
+  ).length;
+  const lowCount = rankedList.filter((i) =>
+    i.kind === 'product'
+      ? i.data.efficiency === 'low'
+      : i.data.coinsPerHour < 25
+  ).length;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -35,7 +76,6 @@ export default function OptimizerScreen() {
         onMachineChange={setSelectedMachine}
       />
 
-      {/* Efficiency Summary */}
       <View style={styles.summaryBar}>
         <View style={styles.summaryItem}>
           <View style={[styles.dot, { backgroundColor: Colors.highEfficiency }]} />
@@ -49,31 +89,43 @@ export default function OptimizerScreen() {
           <View style={[styles.dot, { backgroundColor: Colors.lowEfficiency }]} />
           <Text style={styles.summaryText}>{lowCount} Low</Text>
         </View>
-        <Text style={styles.summaryTotal}>{filteredAndSorted.length} items</Text>
+        <Text style={styles.summaryTotal}>{rankedList.length} items</Text>
       </View>
 
       <FlatList
-        data={filteredAndSorted}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <ProductCard
-            product={item}
-            rank={index + 1}
-            showRank={selectedSort === 'coinsPerHour' && index < 3}
-          />
-        )}
+        data={rankedList}
+        keyExtractor={(item) => `${item.kind}-${item.data.id}`}
+        renderItem={({ item, index }) => {
+          const isTopThree = selectedSort === 'coinsPerHour' && index < 3;
+          if (item.kind === 'crop') {
+            return (
+              <CropCard
+                crop={item.data}
+                rank={index + 1}
+                showRank={isTopThree}
+              />
+            );
+          }
+          return (
+            <ProductCard
+              product={item.data}
+              rank={index + 1}
+              showRank={isTopThree}
+            />
+          );
+        }}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🔍</Text>
-            <Text style={styles.emptyText}>No products found</Text>
+            <Text style={styles.emptyText}>No items found</Text>
           </View>
         )}
         ListHeaderComponent={() => (
           <View style={styles.listHeader}>
             <Text style={styles.listHeaderText}>
-              Tap any card to see ingredients
+              Tap any product card to see its full chain
             </Text>
           </View>
         )}
