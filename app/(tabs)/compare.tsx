@@ -7,6 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +17,7 @@ import { Colors } from '../../constants/Colors';
 import { ItemPicker } from '../../components/ItemPicker';
 import { SellableItem } from '../../utils/allItems';
 
-// ── Boat ─────────────────────────────────────────────────────────────────────
+// ── Shared result banner ──────────────────────────────────────────────────────
 
 function DealResult({ rawValue, offered }: { rawValue: number; offered: number }) {
   if (offered === 0 || rawValue === 0) return null;
@@ -40,6 +42,8 @@ function DealResult({ rawValue, offered }: { rawValue: number; offered: number }
   );
 }
 
+// ── Boat ──────────────────────────────────────────────────────────────────────
+
 function BoatSection() {
   const [item, setItem] = useState<SellableItem | null>(null);
   const [qty, setQty] = useState('');
@@ -57,9 +61,7 @@ function BoatSection() {
         <Text style={styles.sectionSub}>One item type</Text>
       </View>
 
-      <View style={styles.row}>
-        <ItemPicker selected={item} onSelect={setItem} placeholder="Select item..." />
-      </View>
+      <ItemPicker selected={item} onSelect={setItem} placeholder="Select item..." />
 
       <View style={styles.inputRow}>
         <View style={styles.inputGroup}>
@@ -69,6 +71,8 @@ function BoatSection() {
             value={qty}
             onChangeText={setQty}
             keyboardType="number-pad"
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
             placeholder="0"
             placeholderTextColor={Colors.textLight}
           />
@@ -80,6 +84,8 @@ function BoatSection() {
             value={offered}
             onChangeText={setOffered}
             keyboardType="number-pad"
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
             placeholder="0"
             placeholderTextColor={Colors.textLight}
           />
@@ -103,17 +109,17 @@ interface TruckRow {
   id: number;
   item: SellableItem | null;
   qty: string;
-  offered: string;
 }
 
 function TruckSection() {
   const [rows, setRows] = useState<TruckRow[]>([
-    { id: 1, item: null, qty: '', offered: '' },
-    { id: 2, item: null, qty: '', offered: '' },
+    { id: 1, item: null, qty: '' },
+    { id: 2, item: null, qty: '' },
   ]);
+  const [offered, setOffered] = useState('');
 
   const addRow = () => {
-    setRows((prev) => [...prev, { id: Date.now(), item: null, qty: '', offered: '' }]);
+    setRows((prev) => [...prev, { id: Date.now(), item: null, qty: '' }]);
   };
 
   const removeRow = (id: number) => {
@@ -129,81 +135,94 @@ function TruckSection() {
     return sum + r.item.sellPrice * (parseInt(r.qty) || 0);
   }, 0);
 
-  const totalOffered = rows.reduce((sum, r) => sum + (parseInt(r.offered) || 0), 0);
+  const offeredCoins = parseInt(offered) || 0;
 
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionIcon}>🚛</Text>
         <Text style={styles.sectionTitle}>Truck Order</Text>
-        <Text style={styles.sectionSub}>Multiple goods</Text>
+        <Text style={styles.sectionSub}>Lump sum payout</Text>
       </View>
 
-      {rows.map((row, i) => (
-        <View key={row.id} style={styles.truckRow}>
-          <Text style={styles.truckRowNum}>{i + 1}</Text>
-          <View style={styles.truckRowContent}>
-            <View style={styles.truckPickerRow}>
-              <ItemPicker
-                selected={row.item}
-                onSelect={(item) => updateRow(row.id, { item })}
-                placeholder="Select item..."
-              />
-              {rows.length > 1 && (
-                <TouchableOpacity onPress={() => removeRow(row.id)} style={styles.removeBtn}>
-                  <Ionicons name="close-circle" size={22} color={Colors.error} />
-                </TouchableOpacity>
-              )}
-            </View>
-            <View style={styles.inputRow}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Qty</Text>
-                <TextInput
-                  style={styles.input}
-                  value={row.qty}
-                  onChangeText={(v) => updateRow(row.id, { qty: v })}
-                  keyboardType="number-pad"
-                  placeholder="0"
-                  placeholderTextColor={Colors.textLight}
+      {rows.map((row, i) => {
+        const rowRaw = row.item ? row.item.sellPrice * (parseInt(row.qty) || 0) : 0;
+        return (
+          <View key={row.id} style={styles.truckRow}>
+            <Text style={styles.truckRowNum}>{i + 1}</Text>
+            <View style={styles.truckRowContent}>
+              <View style={styles.truckPickerRow}>
+                <ItemPicker
+                  selected={row.item}
+                  onSelect={(item) => updateRow(row.id, { item })}
+                  placeholder="Select item..."
                 />
+                {rows.length > 1 && (
+                  <TouchableOpacity onPress={() => removeRow(row.id)} style={styles.removeBtn}>
+                    <Ionicons name="close-circle" size={22} color={Colors.error} />
+                  </TouchableOpacity>
+                )}
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Pays (coins)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={row.offered}
-                  onChangeText={(v) => updateRow(row.id, { offered: v })}
-                  keyboardType="number-pad"
-                  placeholder="0"
-                  placeholderTextColor={Colors.textLight}
-                />
-              </View>
-              {row.item && row.qty ? (
+              <View style={styles.inputRow}>
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Raw</Text>
-                  <View style={styles.inputReadonly}>
-                    <Text style={styles.inputReadonlyText}>
-                      {row.item.sellPrice * (parseInt(row.qty) || 0)}
-                    </Text>
-                  </View>
+                  <Text style={styles.inputLabel}>Qty</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={row.qty}
+                    onChangeText={(v) => updateRow(row.id, { qty: v })}
+                    keyboardType="number-pad"
+                    returnKeyType="done"
+                    onSubmitEditing={Keyboard.dismiss}
+                    placeholder="0"
+                    placeholderTextColor={Colors.textLight}
+                  />
                 </View>
-              ) : null}
+                {row.item && row.qty ? (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Raw value</Text>
+                    <View style={styles.inputReadonly}>
+                      <Text style={styles.inputReadonlyText}>{rowRaw} coins</Text>
+                    </View>
+                  </View>
+                ) : null}
+              </View>
             </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
 
       <TouchableOpacity style={styles.addBtn} onPress={addRow}>
         <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
         <Text style={styles.addBtnText}>Add item</Text>
       </TouchableOpacity>
 
-      <DealResult rawValue={totalRaw} offered={totalOffered} />
+      {totalRaw > 0 && (
+        <View style={styles.truckTotalRow}>
+          <Text style={styles.truckTotalLabel}>Total raw value:</Text>
+          <Text style={styles.truckTotalValue}>{totalRaw} coins</Text>
+        </View>
+      )}
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Truck offers (lump sum)</Text>
+        <TextInput
+          style={styles.input}
+          value={offered}
+          onChangeText={setOffered}
+          keyboardType="number-pad"
+          returnKeyType="done"
+          onSubmitEditing={Keyboard.dismiss}
+          placeholder="0"
+          placeholderTextColor={Colors.textLight}
+        />
+      </View>
+
+      <DealResult rawValue={totalRaw} offered={offeredCoins} />
     </View>
   );
 }
 
-// ── Screen ─────────────────────────────────────────────────────────────────────
+// ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function CompareScreen() {
   return (
@@ -213,14 +232,16 @@ export default function CompareScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={88}
       >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <BoatSection />
-          <TruckSection />
-        </ScrollView>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <BoatSection />
+            <TruckSection />
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -251,8 +272,6 @@ const styles = StyleSheet.create({
   sectionIcon: { fontSize: 22 },
   sectionTitle: { fontSize: 17, fontWeight: '800', color: Colors.text },
   sectionSub: { fontSize: 12, color: Colors.textLight, marginLeft: 'auto' },
-
-  row: { flexDirection: 'row', gap: 8 },
 
   inputRow: { flexDirection: 'row', gap: 10 },
   inputGroup: { flex: 1 },
@@ -285,7 +304,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   inputReadonlyText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: Colors.textSecondary,
   },
@@ -315,7 +334,7 @@ const styles = StyleSheet.create({
   resultBold: { fontWeight: '700', color: Colors.text },
   resultDiff: { fontSize: 14, fontWeight: '700', marginTop: 4 },
 
-  // Truck specific
+  // Truck
   truckRow: {
     flexDirection: 'row',
     gap: 10,
@@ -333,6 +352,25 @@ const styles = StyleSheet.create({
   truckRowContent: { flex: 1, gap: 8 },
   truckPickerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   removeBtn: { padding: 4 },
+  truckTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  truckTotalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  truckTotalValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.text,
+  },
 
   addBtn: {
     flexDirection: 'row',
