@@ -2,6 +2,7 @@ import { crops } from '../data/crops';
 import { products } from '../data/products';
 import { trees } from '../data/trees';
 import { animals } from '../data/animals';
+import { FISH_CHAIN_MINUTES, FISH_SELL_PRICE } from '../data/fishing';
 
 const cropMap = new Map(crops.map((c) => [c.id, c]));
 const productMap = new Map(products.map((p) => [p.id, p]));
@@ -33,6 +34,8 @@ export function calcChainMinutes(itemId: string, _visited = new Set<string>()): 
     const feedChain = calcChainMinutes(animal.feedId, new Set(_visited));
     return feedChain + animal.productionMinutes;
   }
+
+  if (itemId === 'fish') return FISH_CHAIN_MINUTES; // lure: craft 85m + cooldown 150m
 
   const product = productMap.get(itemId);
   if (!product) return 0; // unknown ingredient — treat as always available
@@ -105,6 +108,20 @@ export function getChainBreakdown(
       depth,
       ownMinutes: tree.cycleMinutes,
       chainMinutes: tree.cycleMinutes,
+      isCriticalPath: false,
+    });
+    return results;
+  }
+
+  if (itemId === 'fish') {
+    results.push({
+      itemId: 'fish',
+      name: 'Fish (lure)',
+      icon: '🐟',
+      quantity,
+      depth,
+      ownMinutes: FISH_CHAIN_MINUTES,
+      chainMinutes: FISH_CHAIN_MINUTES,
       isCriticalPath: false,
     });
     return results;
@@ -193,6 +210,8 @@ export function getItemSellPrice(itemId: string): number {
 
   const animal = animalMap.get(itemId);
   if (animal) return animal.sellPrice;
+
+  if (itemId === 'fish') return FISH_SELL_PRICE;
 
   const product = productMap.get(itemId);
   if (product) return product.sellPrice * product.quantityPerRun;
