@@ -166,16 +166,17 @@ export function getRankedItems(): RankedItem[] {
 
   for (const product of products) {
     const chain = calcChainMinutes(product.id);
+    const effectivePrice = product.sellPrice * product.quantityPerRun;
     items.push({
       itemId: product.id,
       name: product.name,
       icon: product.icon,
       type: 'product',
-      sellPrice: product.sellPrice,
+      sellPrice: effectivePrice,
       ownMinutes: product.productionMinutes,
       chainMinutes: chain,
-      simpleCPH: calcSimpleCPH(product.sellPrice, product.productionMinutes),
-      chainCPH: calcChainCPH(product.sellPrice, chain),
+      simpleCPH: calcSimpleCPH(effectivePrice, product.productionMinutes),
+      chainCPH: calcChainCPH(effectivePrice, chain),
     });
   }
 

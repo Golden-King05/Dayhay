@@ -16,12 +16,13 @@ export interface Product {
   sellPrice: number;
   levelRequired: number;
   ingredients: Ingredient[];
+  quantityPerRun: number;
   coinsPerHour: number;
   efficiency: 'high' | 'medium' | 'low';
 }
 
-function calcCPH(sellPrice: number, productionMinutes: number): number {
-  return parseFloat(((sellPrice / productionMinutes) * 60).toFixed(1));
+function calcCPH(sellPrice: number, productionMinutes: number, quantityPerRun = 1): number {
+  return parseFloat((((sellPrice * quantityPerRun) / productionMinutes) * 60).toFixed(1));
 }
 
 function getEfficiency(cph: number): 'high' | 'medium' | 'low' {
@@ -39,10 +40,14 @@ const rawProducts = [
     machineId: 'feed_mill',
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
-    productionMinutes: 5,
+    productionMinutes: 4,
     sellPrice: 2,
     levelRequired: 1,
-    ingredients: [{ itemId: 'wheat', itemName: 'Wheat', quantity: 3, icon: '🌾' }],
+    quantityPerRun: 3,
+    ingredients: [
+      { itemId: 'wheat', itemName: 'Wheat', quantity: 2, icon: '🌾' },
+      { itemId: 'corn', itemName: 'Corn', quantity: 1, icon: '🌽' },
+    ],
   },
   {
     id: 'cow_feed',
@@ -51,12 +56,13 @@ const rawProducts = [
     machineId: 'feed_mill',
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
-    productionMinutes: 10,
+    productionMinutes: 9,
     sellPrice: 4,
     levelRequired: 4,
+    quantityPerRun: 3,
     ingredients: [
-      { itemId: 'wheat', itemName: 'Wheat', quantity: 3, icon: '🌾' },
-      { itemId: 'corn', itemName: 'Corn', quantity: 3, icon: '🌽' },
+      { itemId: 'soybeans', itemName: 'Soybeans', quantity: 2, icon: '🫘' },
+      { itemId: 'corn', itemName: 'Corn', quantity: 1, icon: '🌽' },
     ],
   },
   {
@@ -66,12 +72,13 @@ const rawProducts = [
     machineId: 'feed_mill',
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
-    productionMinutes: 15,
+    productionMinutes: 19,
     sellPrice: 7,
     levelRequired: 8,
+    quantityPerRun: 3,
     ingredients: [
-      { itemId: 'corn', itemName: 'Corn', quantity: 3, icon: '🌽' },
-      { itemId: 'soybeans', itemName: 'Soybeans', quantity: 3, icon: '🫘' },
+      { itemId: 'carrots', itemName: 'Carrots', quantity: 2, icon: '🥕' },
+      { itemId: 'soybeans', itemName: 'Soybeans', quantity: 1, icon: '🫘' },
     ],
   },
   {
@@ -81,12 +88,46 @@ const rawProducts = [
     machineId: 'feed_mill',
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
-    productionMinutes: 20,
+    productionMinutes: 28,
     sellPrice: 9,
     levelRequired: 11,
+    quantityPerRun: 3,
     ingredients: [
       { itemId: 'wheat', itemName: 'Wheat', quantity: 3, icon: '🌾' },
-      { itemId: 'soybeans', itemName: 'Soybeans', quantity: 3, icon: '🫘' },
+      { itemId: 'soybeans', itemName: 'Soybeans', quantity: 1, icon: '🫘' },
+    ],
+  },
+  {
+    id: 'lamb_feed',
+    name: 'Lamb Feed',
+    icon: '🐏',
+    machineId: 'feed_mill',
+    machineName: 'Feed Mill',
+    machineEmoji: '🏭',
+    productionMinutes: 9,
+    sellPrice: 5,
+    levelRequired: 14,
+    quantityPerRun: 3,
+    ingredients: [
+      { itemId: 'black_beans', itemName: 'Black Beans', quantity: 4, icon: '🫘' },
+      { itemId: 'soybeans', itemName: 'Soybeans', quantity: 2, icon: '🫘' },
+    ],
+  },
+  {
+    id: 'goat_feed',
+    name: 'Goat Feed',
+    icon: '🐐',
+    machineId: 'feed_mill',
+    machineName: 'Feed Mill',
+    machineEmoji: '🏭',
+    productionMinutes: 38,
+    sellPrice: 15,
+    levelRequired: 17,
+    quantityPerRun: 3,
+    ingredients: [
+      { itemId: 'wheat', itemName: 'Wheat', quantity: 1, icon: '🌾' },
+      { itemId: 'carrots', itemName: 'Carrots', quantity: 2, icon: '🥕' },
+      { itemId: 'corn', itemName: 'Corn', quantity: 1, icon: '🌽' },
     ],
   },
   // ── Dairy ──────────────────────────────────────────────────
@@ -534,9 +575,11 @@ const rawProducts = [
 ];
 
 export const products: Product[] = rawProducts.map((p) => {
-  const cph = calcCPH(p.sellPrice, p.productionMinutes);
+  const qty = (p as any).quantityPerRun ?? 1;
+  const cph = calcCPH(p.sellPrice, p.productionMinutes, qty);
   return {
     ...p,
+    quantityPerRun: qty,
     coinsPerHour: cph,
     efficiency: getEfficiency(cph),
   };
