@@ -17,8 +17,10 @@ import { TreeCard } from '../../components/TreeCard';
 import { FilterBar } from '../../components/FilterBar';
 import { getEnrichedProducts, sortProducts, filterByMachine, SortKey, OVERNIGHT_MIN_MINUTES } from '../../utils/optimizer';
 import { useFishSetting } from '../../hooks/useFishSetting';
+import { useBeeSetting } from '../../hooks/useBeeSetting';
 import { formatTime } from '../../utils/optimizer';
 import { FISH_CHAIN_MINUTES } from '../../data/fishing';
+import { MAX_BEE_NESTS } from '../../data/bees';
 
 import { Product } from '../../data/products';
 import { Tree } from '../../data/trees';
@@ -32,6 +34,7 @@ export default function OptimizerScreen() {
   const [selectedMachine, setSelectedMachine] = useState('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const { fishEnabled, fishMinutes, toggleFish } = useFishSetting();
+  const { beeNests, setNests } = useBeeSetting();
 
   const isOvernight = selectedMachine === 'overnight';
 
@@ -111,16 +114,38 @@ export default function OptimizerScreen() {
         }}
       />
 
-      <View style={styles.fishToggleBar}>
-        <Text style={styles.fishToggleLabel}>
-          🐟 Fish: {fishEnabled ? `Lure (${formatTime(FISH_CHAIN_MINUTES)}/fish)` : 'Pre-stocked (free)'}
-        </Text>
-        <Switch
-          value={fishEnabled}
-          onValueChange={toggleFish}
-          trackColor={{ false: Colors.border, true: Colors.primary + '88' }}
-          thumbColor={fishEnabled ? Colors.primary : Colors.textLight}
-        />
+      <View style={styles.settingsBar}>
+        <View style={styles.settingsRow}>
+          <Text style={styles.settingsLabel}>
+            🐟 Fish: {fishEnabled ? `Lure (${formatTime(FISH_CHAIN_MINUTES)}/fish)` : 'Pre-stocked (free)'}
+          </Text>
+          <Switch
+            value={fishEnabled}
+            onValueChange={toggleFish}
+            trackColor={{ false: Colors.border, true: Colors.primary + '88' }}
+            thumbColor={fishEnabled ? Colors.primary : Colors.textLight}
+          />
+        </View>
+        <View style={[styles.settingsRow, styles.settingsRowBorder]}>
+          <Text style={styles.settingsLabel}>🐝 Bee nests</Text>
+          <View style={styles.nestCounter}>
+            <TouchableOpacity
+              style={styles.nestBtn}
+              onPress={() => setNests(beeNests - 1)}
+              disabled={beeNests <= 1}
+            >
+              <Text style={[styles.nestBtnText, beeNests <= 1 && { color: Colors.border }]}>−</Text>
+            </TouchableOpacity>
+            <Text style={styles.nestCount}>{beeNests} / {MAX_BEE_NESTS}</Text>
+            <TouchableOpacity
+              style={styles.nestBtn}
+              onPress={() => setNests(beeNests + 1)}
+              disabled={beeNests >= MAX_BEE_NESTS}
+            >
+              <Text style={[styles.nestBtnText, beeNests >= MAX_BEE_NESTS && { color: Colors.border }]}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <View style={styles.summaryBar}>
@@ -206,20 +231,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  fishToggleBar: {
+  settingsBar: {
+    backgroundColor: Colors.cardBackground,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  settingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: Colors.cardBackground,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
-  fishToggleLabel: {
+  settingsRowBorder: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  settingsLabel: {
     fontSize: 13,
     color: Colors.textSecondary,
     fontWeight: '500',
+  },
+  nestCounter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  nestBtn: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nestBtnText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  nestCount: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    minWidth: 40,
+    textAlign: 'center',
   },
   summaryBar: {
     flexDirection: 'row',
