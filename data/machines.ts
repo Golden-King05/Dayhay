@@ -104,4 +104,12 @@ export const machines: Machine[] = [
     levelRequired: 0,
     description: 'Brews coffee drinks',
   },
+  {
+    id: 'honey_extractor',
+    name: 'Honey Extractor',
+    icon: 'honey-extractor',
+    emoji: '🫙',
+    levelRequired: 0,
+    description: 'Extracts honey from honeycombs',
+  },
 ];

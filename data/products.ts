@@ -602,6 +602,24 @@ const rawProducts = [
       { itemId: 'blackberry', itemName: 'Blackberry', quantity: 3, icon: '🫐' },
     ],
   },
+  // ── Honey Extractor ────────────────────────────────────────────────────────
+  {
+    id: 'honey',
+    name: 'Honey',
+    icon: '🍯',
+    machineId: 'honey_extractor',
+    machineName: 'Honey Extractor',
+    machineEmoji: '🫙',
+    productionMinutes: 20,
+    sellPrice: 154,
+    levelRequired: 0,
+    quantityPerRun: 1,
+    ingredients: [
+      { itemId: 'honeycomb', itemName: 'Honeycomb', quantity: 2, icon: '🍯' },
+    ],
+    coinsPerHour: calcCPH(154, 20),
+    efficiency: getEfficiency(calcCPH(154, 20)),
+  },
 ];
 
 export const products: Product[] = rawProducts.map((p) => {

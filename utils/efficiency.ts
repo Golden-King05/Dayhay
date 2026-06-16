@@ -39,6 +39,7 @@ export function calcChainMinutes(
   }
 
   if (itemId === 'fish') return fishMinutes;
+  if (itemId === 'nectar_bush') return 0; // environmental — bees collect passively
 
   const product = productMap.get(itemId);
   if (!product) return 0;
@@ -126,6 +127,20 @@ export function getChainBreakdown(
       depth,
       ownMinutes: fishMinutes,
       chainMinutes: fishMinutes,
+      isCriticalPath: false,
+    });
+    return results;
+  }
+
+  if (itemId === 'nectar_bush') {
+    results.push({
+      itemId: 'nectar_bush',
+      name: 'Nectar Bush (environmental)',
+      icon: '🌸',
+      quantity,
+      depth,
+      ownMinutes: 0,
+      chainMinutes: 0,
       isCriticalPath: false,
     });
     return results;

@@ -77,4 +77,15 @@ export const animals: Animal[] = [
     sellPrice: 54,
     levelRequired: 0,
   },
+  {
+    id: 'honeycomb',
+    name: 'Honeycomb',
+    animalName: 'Bee',
+    icon: '🍯',
+    animalIcon: '🐝',
+    productionMinutes: 35,
+    feedId: 'nectar_bush', // environmental — contributes 0 to chain time
+    sellPrice: 68,
+    levelRequired: 0,
+  },
 ];
