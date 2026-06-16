@@ -709,6 +709,39 @@ const rawProducts = [
       { itemId: 'indigo', itemName: 'Indigo', quantity: 2, icon: '🟣' },
     ],
   },
+  // ── Pie Oven ───────────────────────────────────────────────────────────────
+  {
+    id: 'carrot_pie',
+    name: 'Carrot Pie',
+    icon: '🥧',
+    machineId: 'pie_oven',
+    machineName: 'Pie Oven',
+    machineEmoji: '🥧',
+    productionMinutes: 60,
+    sellPrice: 82,
+    levelRequired: 0,
+    ingredients: [
+      { itemId: 'carrots', itemName: 'Carrots', quantity: 3, icon: '🥕' },
+      { itemId: 'wheat', itemName: 'Wheat', quantity: 2, icon: '🌾' },
+      { itemId: 'egg', itemName: 'Egg', quantity: 1, icon: '🥚' },
+    ],
+  },
+  {
+    id: 'pumpkin_pie',
+    name: 'Pumpkin Pie',
+    icon: '🥧',
+    machineId: 'pie_oven',
+    machineName: 'Pie Oven',
+    machineEmoji: '🥧',
+    productionMinutes: 120,
+    sellPrice: 158,
+    levelRequired: 0,
+    ingredients: [
+      { itemId: 'pumpkin', itemName: 'Pumpkin', quantity: 3, icon: '🎃' },
+      { itemId: 'wheat', itemName: 'Wheat', quantity: 2, icon: '🌾' },
+      { itemId: 'egg', itemName: 'Egg', quantity: 1, icon: '🥚' },
+    ],
+  },
   // ── Sewing Machine ─────────────────────────────────────────────────────────
   {
     id: 'cotton_shirt',
