@@ -13,13 +13,14 @@ import { crops } from '../../data/crops';
 import { ProductCard } from '../../components/ProductCard';
 import { CropCard } from '../../components/CropCard';
 import { FilterBar } from '../../components/FilterBar';
-import { getEnrichedProducts, sortProducts, filterByMachine, SortKey } from '../../utils/optimizer';
+import { getEnrichedProducts, sortProducts, filterByMachine, SortKey, OVERNIGHT_MIN_MINUTES } from '../../utils/optimizer';
 import { useFishSetting } from '../../hooks/useFishSetting';
 import { formatTime } from '../../utils/optimizer';
 import { FISH_CHAIN_MINUTES } from '../../data/fishing';
 
+import { Product } from '../../data/products';
 type ListItem =
-  | { kind: 'product'; data: (typeof products)[0] }
+  | { kind: 'product'; data: Product }
   | { kind: 'crop'; data: (typeof crops)[0] };
 
 export default function OptimizerScreen() {
@@ -28,41 +29,52 @@ export default function OptimizerScreen() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const { fishEnabled, fishMinutes, toggleFish } = useFishSetting();
 
+  const isOvernight = selectedMachine === 'overnight';
+
   const rankedList = useMemo((): ListItem[] => {
     const products = getEnrichedProducts(fishMinutes);
     const filteredProducts = filterByMachine(products, selectedMachine);
     const productItems: ListItem[] = sortProducts(filteredProducts, selectedSort, sortOrder)
       .map((p) => ({ kind: 'product', data: p }));
 
-    // Only include crops when showing all (crops don't belong to a machine)
-    if (selectedMachine !== 'all') return productItems;
+    // Only mix in crops for 'all' and 'overnight' (crops don't belong to a machine)
+    if (selectedMachine !== 'all' && !isOvernight) return productItems;
 
-    const cropItems: ListItem[] = crops.map((c) => ({ kind: 'crop', data: c }));
+    const eligibleCrops = isOvernight
+      ? crops.filter((c) => c.growTimeMinutes >= OVERNIGHT_MIN_MINUTES)
+      : crops;
+    const cropItems: ListItem[] = eligibleCrops.map((c) => ({ kind: 'crop', data: c }));
     const all = [...productItems, ...cropItems];
 
+    // Sort the combined list
+    const dir = (a: number, b: number) => sortOrder === 'desc' ? b - a : a - b;
     if (selectedSort === 'coinsPerHour') {
-      all.sort((a, b) => {
-        const aCPH = a.data.coinsPerHour;
-        const bCPH = b.data.coinsPerHour;
-        return sortOrder === 'desc' ? bCPH - aCPH : aCPH - bCPH;
-      });
+      all.sort((a, b) => dir(a.data.coinsPerHour, b.data.coinsPerHour));
     } else if (selectedSort === 'sellPrice') {
-      all.sort((a, b) => {
-        const aVal = a.data.sellPrice;
-        const bVal = b.data.sellPrice;
-        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
-      });
+      all.sort((a, b) => dir(a.data.sellPrice, b.data.sellPrice));
     } else if (selectedSort === 'craftingProfit') {
-      // Crops have no ingredient cost so treat their full sell price as profit
       all.sort((a, b) => {
         const aVal = a.kind === 'product' ? (a.data.craftingProfit ?? 0) : a.data.sellPrice;
         const bVal = b.kind === 'product' ? (b.data.craftingProfit ?? 0) : b.data.sellPrice;
-        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+        return dir(aVal, bVal);
       });
+    } else if (selectedSort === 'perRunValue') {
+      // For crops, per-run = sellPrice (one harvest per plot)
+      // For products, per-run = sellPrice × quantityPerRun
+      all.sort((a, b) => {
+        const aVal = a.kind === 'product' ? (a.data.perRunValue ?? a.data.sellPrice) : a.data.sellPrice;
+        const bVal = b.kind === 'product' ? (b.data.perRunValue ?? b.data.sellPrice) : b.data.sellPrice;
+        return dir(aVal, bVal);
+      });
+    } else if (selectedSort === 'productionMinutes') {
+      all.sort((a, b) => dir(
+        a.kind === 'product' ? a.data.productionMinutes : a.data.growTimeMinutes,
+        b.kind === 'product' ? b.data.productionMinutes : b.data.growTimeMinutes,
+      ));
     }
 
     return all;
-  }, [selectedSort, selectedMachine, sortOrder, fishMinutes]);
+  }, [selectedSort, selectedMachine, sortOrder, fishMinutes, isOvernight]);
 
   const highCount = rankedList.filter((i) =>
     i.kind === 'product'
@@ -91,7 +103,10 @@ export default function OptimizerScreen() {
           setSortOrder('desc'); // reset to desc when switching sort type
         }}
         onSortOrderToggle={() => setSortOrder((o) => (o === 'desc' ? 'asc' : 'desc'))}
-        onMachineChange={setSelectedMachine}
+        onMachineChange={(id) => {
+          setSelectedMachine(id);
+          if (id === 'overnight') setSelectedSort('perRunValue');
+        }}
       />
 
       <View style={styles.fishToggleBar}>
@@ -154,11 +169,21 @@ export default function OptimizerScreen() {
           </View>
         )}
         ListHeaderComponent={() => (
-          <View style={styles.listHeader}>
-            <Text style={styles.listHeaderText}>
-              Tap any product card to see its full chain
-            </Text>
-          </View>
+          isOvernight ? (
+            <View style={styles.overnightBanner}>
+              <Text style={styles.overnightTitle}>🌙 Idle / Overnight mode</Text>
+              <Text style={styles.overnightDesc}>
+                Items with a single run ≥ 4 hours — start before bed, collect in the morning.
+                Sorted by total coins per run.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.listHeader}>
+              <Text style={styles.listHeaderText}>
+                Tap any product card to see its full chain
+              </Text>
+            </View>
+          )
         )}
       />
     </SafeAreaView>
@@ -242,5 +267,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     fontWeight: '600',
+  },
+  overnightBanner: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 4,
+    padding: 12,
+    backgroundColor: '#1A237E10',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1A237E30',
+  },
+  overnightTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1A237E',
+    marginBottom: 4,
+  },
+  overnightDesc: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 17,
   },
 });

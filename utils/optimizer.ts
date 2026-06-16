@@ -10,7 +10,8 @@ function enrichProducts(fishMinutes: number): Product[] {
     const efficiency: 'high' | 'medium' | 'low' =
       chainCPH >= 60 ? 'high' : chainCPH >= 25 ? 'medium' : 'low';
     const { craftingProfit } = calcCraftingValue(p);
-    return { ...p, coinsPerHour: chainCPH, efficiency, craftingProfit };
+    const perRunValue = p.sellPrice * p.quantityPerRun;
+    return { ...p, coinsPerHour: chainCPH, efficiency, craftingProfit, perRunValue };
   });
 }
 
@@ -22,8 +23,14 @@ export function getEnrichedProducts(fishMinutes: number): Product[] {
   return enrichProducts(fishMinutes);
 }
 
-export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired' | 'craftingProfit';
+export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired' | 'craftingProfit' | 'perRunValue';
 export type SortOrder = 'asc' | 'desc';
+
+function getProductSortVal(p: Product, key: SortKey): number {
+  if (key === 'craftingProfit') return p.craftingProfit ?? 0;
+  if (key === 'perRunValue') return p.perRunValue ?? (p.sellPrice * p.quantityPerRun);
+  return p[key as keyof Product] as number;
+}
 
 export function sortProducts(
   products: Product[],
@@ -31,15 +38,19 @@ export function sortProducts(
   sortOrder: SortOrder = 'desc'
 ): Product[] {
   return [...products].sort((a, b) => {
-    const aVal = sortKey === 'craftingProfit' ? (a.craftingProfit ?? 0) : a[sortKey as keyof Product] as number;
-    const bVal = sortKey === 'craftingProfit' ? (b.craftingProfit ?? 0) : b[sortKey as keyof Product] as number;
+    const aVal = getProductSortVal(a, sortKey);
+    const bVal = getProductSortVal(b, sortKey);
     if (sortOrder === 'desc') return bVal - aVal;
     return aVal - bVal;
   });
 }
 
+// 'overnight' = long-cycle items good for idle play (≥ 4 hours)
+export const OVERNIGHT_MIN_MINUTES = 240;
+
 export function filterByMachine(products: Product[], machineId: string | null): Product[] {
   if (!machineId || machineId === 'all') return products;
+  if (machineId === 'overnight') return products.filter((p) => p.productionMinutes >= OVERNIGHT_MIN_MINUTES);
   return products.filter((p) => p.machineId === machineId);
 }
 

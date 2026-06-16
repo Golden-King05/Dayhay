@@ -20,6 +20,7 @@ export interface Product {
   coinsPerHour: number;
   efficiency: 'high' | 'medium' | 'low';
   craftingProfit?: number;
+  perRunValue?: number;
 }
 
 function calcCPH(sellPrice: number, productionMinutes: number, quantityPerRun = 1): number {

@@ -17,6 +17,7 @@ interface SortOption {
 
 const SORT_OPTIONS: SortOption[] = [
   { key: 'coinsPerHour', label: 'Coins/Hr', icon: '⚡' },
+  { key: 'perRunValue', label: 'Per Run', icon: '🌙' },
   { key: 'craftingProfit', label: 'Profit', icon: '💰' },
   { key: 'sellPrice', label: 'Price', icon: '🪙' },
   { key: 'productionMinutes', label: 'Time', icon: '⏱' },
@@ -31,6 +32,7 @@ interface MachineFilter {
 
 const MACHINE_FILTERS: MachineFilter[] = [
   { id: 'all', label: 'All', emoji: '🏡' },
+  { id: 'overnight', label: 'Idle 4h+', emoji: '🌙' },
   { id: 'feed_mill', label: 'Feed Mill', emoji: '🏭' },
   { id: 'dairy', label: 'Dairy', emoji: '🥛' },
   { id: 'sugar_mill', label: 'Sugar Mill', emoji: '🍬' },
