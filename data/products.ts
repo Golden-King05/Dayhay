@@ -363,7 +363,7 @@ const rawProducts = [
     machineId: 'bbq_grill',
     machineName: 'BBQ Grill',
     machineEmoji: '🔥',
-    productionMinutes: 0,
+    productionMinutes: 120,
     sellPrice: 226,
     levelRequired: 0,
     ingredients: [
