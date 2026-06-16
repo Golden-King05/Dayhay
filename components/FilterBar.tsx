@@ -42,7 +42,6 @@ const MACHINE_FILTERS: MachineFilter[] = [
   { id: 'bbq_grill', label: 'BBQ', emoji: '🔥' },
   { id: 'pie_oven', label: 'Pie Oven', emoji: '🥧' },
   { id: 'juice_press', label: 'Juice', emoji: '🧃' },
-  { id: 'smoothie_mixer', label: 'Smoothie', emoji: '🥤' },
   { id: 'ice_cream_maker', label: 'Ice Cream', emoji: '🍦' },
   { id: 'coffee_kiosk', label: 'Coffee', emoji: '☕' },
   { id: 'jam_maker', label: 'Jam', emoji: '🫙' },

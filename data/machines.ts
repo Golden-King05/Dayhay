@@ -73,14 +73,6 @@ export const machines: Machine[] = [
     description: 'Presses fruits into juice',
   },
   {
-    id: 'smoothie_mixer',
-    name: 'Smoothie Mixer',
-    icon: 'smoothie-mixer',
-    emoji: '🥤',
-    levelRequired: 35,
-    description: 'Blends smoothies from fruit',
-  },
-  {
     id: 'ice_cream_maker',
     name: 'Ice Cream Maker',
     icon: 'ice-cream-maker',
