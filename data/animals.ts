@@ -19,7 +19,7 @@ export const animals: Animal[] = [
     animalIcon: '🐔',
     productionMinutes: 20,
     feedId: 'chicken_feed',
-    sellPrice: 0,
+    sellPrice: 18,
     levelRequired: 0,
   },
   {
@@ -30,7 +30,7 @@ export const animals: Animal[] = [
     animalIcon: '🐄',
     productionMinutes: 60,
     feedId: 'cow_feed',
-    sellPrice: 0,
+    sellPrice: 32,
     levelRequired: 0,
   },
   {
@@ -41,7 +41,7 @@ export const animals: Animal[] = [
     animalIcon: '🐷',
     productionMinutes: 240,
     feedId: 'pig_feed',
-    sellPrice: 0,
+    sellPrice: 50,
     levelRequired: 0,
   },
   {
@@ -52,7 +52,7 @@ export const animals: Animal[] = [
     animalIcon: '🐏',
     productionMinutes: 30,
     feedId: 'lamb_feed',
-    sellPrice: 0,
+    sellPrice: 36,
     levelRequired: 0,
   },
   {
@@ -63,7 +63,7 @@ export const animals: Animal[] = [
     animalIcon: '🐐',
     productionMinutes: 480,
     feedId: 'goat_feed',
-    sellPrice: 0,
+    sellPrice: 64,
     levelRequired: 0,
   },
   {
