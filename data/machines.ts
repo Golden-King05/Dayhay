@@ -104,4 +104,12 @@ export const machines: Machine[] = [
     levelRequired: 3,
     description: 'Pops corn into popcorn',
   },
+  {
+    id: 'coffee_kiosk',
+    name: 'Coffee Kiosk',
+    icon: 'coffee-kiosk',
+    emoji: '☕',
+    levelRequired: 0,
+    description: 'Brews coffee drinks',
+  },
 ];
