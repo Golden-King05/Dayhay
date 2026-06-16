@@ -216,6 +216,23 @@ const rawProducts = [
     levelRequired: 8,
     ingredients: [{ itemId: 'sugarcane', itemName: 'Sugarcane', quantity: 4, icon: '🎋' }],
   },
+  // ── Bakery ─────────────────────────────────────────────────
+  {
+    id: 'cookie',
+    name: 'Cookie',
+    icon: '🍪',
+    machineId: 'bakery',
+    machineName: 'Bakery',
+    machineEmoji: '🍞',
+    productionMinutes: 60,
+    sellPrice: 104,
+    levelRequired: 0,
+    ingredients: [
+      { itemId: 'wheat', itemName: 'Wheat', quantity: 2, icon: '🌾' },
+      { itemId: 'brown_sugar', itemName: 'Brown Sugar', quantity: 1, icon: '🟫' },
+      { itemId: 'egg', itemName: 'Egg', quantity: 2, icon: '🥚' },
+    ],
+  },
   // ── Coffee Kiosk ───────────────────────────────────────────
   {
     id: 'espresso',
