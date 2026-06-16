@@ -1,8 +1,10 @@
 import { crops } from '../data/crops';
 import { products } from '../data/products';
+import { trees } from '../data/trees';
 
 const cropMap = new Map(crops.map((c) => [c.id, c]));
 const productMap = new Map(products.map((p) => [p.id, p]));
+const treeMap = new Map(trees.map((t) => [t.id, t]));
 
 /**
  * Critical-path minutes to produce an item from scratch.
@@ -19,6 +21,9 @@ export function calcChainMinutes(itemId: string, _visited = new Set<string>()): 
 
   const crop = cropMap.get(itemId);
   if (crop) return crop.growTimeMinutes;
+
+  const tree = treeMap.get(itemId);
+  if (tree) return tree.cycleMinutes;
 
   const product = productMap.get(itemId);
   if (!product) return 0; // animal product — treat as always available
@@ -76,7 +81,22 @@ export function getChainBreakdown(
       depth,
       ownMinutes: crop.growTimeMinutes,
       chainMinutes: crop.growTimeMinutes,
-      isCriticalPath: false, // set by caller if needed
+      isCriticalPath: false,
+    });
+    return results;
+  }
+
+  const tree = treeMap.get(itemId);
+  if (tree) {
+    results.push({
+      itemId,
+      name: tree.name,
+      icon: tree.icon,
+      quantity,
+      depth,
+      ownMinutes: tree.cycleMinutes,
+      chainMinutes: tree.cycleMinutes,
+      isCriticalPath: false,
     });
     return results;
   }
@@ -161,6 +181,22 @@ export function getRankedItems(): RankedItem[] {
       chainMinutes: crop.growTimeMinutes,
       simpleCPH: calcSimpleCPH(crop.sellPrice, crop.growTimeMinutes),
       chainCPH: calcSimpleCPH(crop.sellPrice, crop.growTimeMinutes),
+    });
+  }
+
+  for (const tree of trees) {
+    if (tree.sellPrice === 0) continue; // skip until sell price is known
+    const effectivePrice = tree.sellPrice * tree.quantityPerCycle;
+    items.push({
+      itemId: tree.id,
+      name: `${tree.name} (${tree.plantName})`,
+      icon: tree.icon,
+      type: 'crop',
+      sellPrice: effectivePrice,
+      ownMinutes: tree.cycleMinutes,
+      chainMinutes: tree.cycleMinutes,
+      simpleCPH: calcSimpleCPH(effectivePrice, tree.cycleMinutes),
+      chainCPH: calcSimpleCPH(effectivePrice, tree.cycleMinutes),
     });
   }
 
