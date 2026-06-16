@@ -41,7 +41,7 @@ const rawProducts = [
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
     productionMinutes: 4,
-    sellPrice: 2,
+    sellPrice: 7,
     levelRequired: 1,
     quantityPerRun: 3,
     ingredients: [
@@ -57,7 +57,7 @@ const rawProducts = [
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
     productionMinutes: 9,
-    sellPrice: 4,
+    sellPrice: 14,
     levelRequired: 4,
     quantityPerRun: 3,
     ingredients: [
@@ -73,7 +73,7 @@ const rawProducts = [
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
     productionMinutes: 19,
-    sellPrice: 7,
+    sellPrice: 14,
     levelRequired: 8,
     quantityPerRun: 3,
     ingredients: [
@@ -89,7 +89,7 @@ const rawProducts = [
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
     productionMinutes: 28,
-    sellPrice: 9,
+    sellPrice: 14,
     levelRequired: 11,
     quantityPerRun: 3,
     ingredients: [
@@ -105,7 +105,7 @@ const rawProducts = [
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
     productionMinutes: 9,
-    sellPrice: 5,
+    sellPrice: 18,
     levelRequired: 14,
     quantityPerRun: 3,
     ingredients: [
@@ -121,7 +121,7 @@ const rawProducts = [
     machineName: 'Feed Mill',
     machineEmoji: '🏭',
     productionMinutes: 38,
-    sellPrice: 15,
+    sellPrice: 14,
     levelRequired: 17,
     quantityPerRun: 3,
     ingredients: [
