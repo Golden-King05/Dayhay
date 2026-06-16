@@ -5,16 +5,19 @@ import {
   StyleSheet,
   FlatList,
   TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { ProductCard } from '../../components/ProductCard';
+import { IngredientPlanner } from '../../components/IngredientPlanner';
 import { getEnrichedProducts, searchProducts, sortProducts } from '../../utils/optimizer';
 import { useFishSetting } from '../../hooks/useFishSetting';
 
 export default function ProductsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [plannerOpen, setPlannerOpen] = useState(false);
   const { fishMinutes } = useFishSetting();
 
   const filtered = useMemo(() => {
@@ -42,7 +45,12 @@ export default function ProductsScreen() {
         <Text style={styles.resultsText}>
           {filtered.length} product{filtered.length !== 1 ? 's' : ''} • sorted by level
         </Text>
+        <TouchableOpacity style={styles.plannerBtn} onPress={() => setPlannerOpen(true)}>
+          <Text style={styles.plannerBtnText}>🧺 Use My Ingredients</Text>
+        </TouchableOpacity>
       </View>
+
+      <IngredientPlanner visible={plannerOpen} onClose={() => setPlannerOpen(false)} />
 
       <FlatList
         data={filtered}
@@ -89,13 +97,30 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   resultsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 8,
+    gap: 8,
   },
   resultsText: {
     fontSize: 12,
     color: Colors.textLight,
     fontWeight: '500',
+    flex: 1,
+  },
+  plannerBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: Colors.primary + '18',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary + '50',
+  },
+  plannerBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primary,
   },
   listContent: {
     paddingTop: 4,
