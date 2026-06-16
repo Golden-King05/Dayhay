@@ -8,7 +8,7 @@ import {
 import { Colors } from '../constants/Colors';
 import { Product } from '../data/products';
 import { formatTime, getEfficiencyColor } from '../utils/optimizer';
-import { getChainBreakdown, calcChainMinutes } from '../utils/efficiency';
+import { getChainBreakdown, calcChainMinutes, calcCraftingValue } from '../utils/efficiency';
 import { MachineIcon } from './MachineIcon';
 
 interface ProductCardProps {
@@ -23,6 +23,7 @@ export function ProductCard({ product, rank, showRank }: ProductCardProps) {
 
   const chainSteps = expanded ? getChainBreakdown(product.id) : [];
   const chainMinutes = expanded ? calcChainMinutes(product.id) : 0;
+  const craftingValue = expanded ? calcCraftingValue(product) : null;
 
   return (
     <TouchableOpacity
@@ -96,6 +97,28 @@ export function ProductCard({ product, rank, showRank }: ProductCardProps) {
               </Text>
             </View>
           ))}
+          {craftingValue && craftingValue.ingredientValue > 0 && (() => {
+            const profitCPH = chainMinutes > 0
+              ? Math.round((craftingValue.craftingProfit / chainMinutes) * 60 * 10) / 10
+              : 0;
+            return (
+              <View style={[
+                styles.profitRow,
+                craftingValue.craftingProfit >= 0 ? styles.profitPositive : styles.profitNegative,
+              ]}>
+                <Text style={styles.profitLabel}>
+                  {craftingValue.craftingProfit >= 0 ? '✅ Worth crafting' : '⚠️ Sell ingredients instead'}
+                </Text>
+                <Text style={styles.profitValue}>
+                  {craftingValue.craftingProfit >= 0 ? '+' : ''}{craftingValue.craftingProfit} coins over raw
+                  {' '}({craftingValue.markupPercent >= 0 ? '+' : ''}{craftingValue.markupPercent}%)
+                </Text>
+                <Text style={styles.profitValue}>
+                  {profitCPH >= 0 ? '+' : ''}{profitCPH} added coins/hr vs selling raw
+                </Text>
+              </View>
+            );
+          })()}
           <View style={styles.chainFooter}>
             <Text style={styles.chainFooterText}>
               🪙 {product.sellPrice} ÷ {formatTime(chainMinutes)} = {product.coinsPerHour} coins/hr
@@ -262,6 +285,27 @@ const styles = StyleSheet.create({
   chainTimeCritical: {
     color: Colors.accentDark,
     fontWeight: '700',
+  },
+  profitRow: {
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 8,
+  },
+  profitPositive: {
+    backgroundColor: Colors.success + '18',
+  },
+  profitNegative: {
+    backgroundColor: Colors.error + '18',
+  },
+  profitLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  profitValue: {
+    fontSize: 11,
+    color: Colors.textSecondary,
   },
   chainFooter: {
     marginTop: 8,

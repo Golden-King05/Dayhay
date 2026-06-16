@@ -181,6 +181,48 @@ export function getChainBreakdown(
   return results;
 }
 
+// ── Opportunity cost ─────────────────────────────────────────────────────────
+
+/** Sell price of a single unit of any item by ID. Returns 0 if unknown. */
+export function getItemSellPrice(itemId: string): number {
+  const crop = cropMap.get(itemId);
+  if (crop) return crop.sellPrice;
+
+  const tree = treeMap.get(itemId);
+  if (tree) return tree.sellPrice;
+
+  const animal = animalMap.get(itemId);
+  if (animal) return animal.sellPrice;
+
+  const product = productMap.get(itemId);
+  if (product) return product.sellPrice * product.quantityPerRun;
+
+  return 0;
+}
+
+export interface CraftingValue {
+  sellPrice: number;       // what the finished product sells for
+  ingredientValue: number; // what you'd earn selling all direct ingredients raw
+  craftingProfit: number;  // sellPrice - ingredientValue (positive = worth crafting)
+  markupPercent: number;   // how much extra % you earn by crafting vs selling raw
+}
+
+/**
+ * For each direct ingredient, totals up what you'd earn selling it raw instead.
+ * If craftingProfit < 0, you lose money by crafting — better to sell ingredients.
+ */
+export function calcCraftingValue(product: { sellPrice: number; quantityPerRun: number; ingredients: { itemId: string; quantity: number }[] }): CraftingValue {
+  const sellPrice = product.sellPrice * product.quantityPerRun;
+  const ingredientValue = product.ingredients.reduce((total, ing) => {
+    return total + getItemSellPrice(ing.itemId) * ing.quantity;
+  }, 0);
+  const craftingProfit = sellPrice - ingredientValue;
+  const markupPercent = ingredientValue > 0
+    ? Math.round((craftingProfit / ingredientValue) * 100)
+    : 0;
+  return { sellPrice, ingredientValue, craftingProfit, markupPercent };
+}
+
 // ── Ranked analysis ───────────────────────────────────────────────────────────
 
 export interface RankedItem {
