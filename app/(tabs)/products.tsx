@@ -10,15 +10,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { ProductCard } from '../../components/ProductCard';
-import { products, searchProducts, sortProducts } from '../../utils/optimizer';
+import { getEnrichedProducts, searchProducts, sortProducts } from '../../utils/optimizer';
+import { useFishSetting } from '../../hooks/useFishSetting';
 
 export default function ProductsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { fishMinutes } = useFishSetting();
 
   const filtered = useMemo(() => {
+    const products = getEnrichedProducts(fishMinutes);
     const searched = searchProducts(products, searchQuery);
     return sortProducts(searched, 'levelRequired', 'asc');
-  }, [searchQuery]);
+  }, [searchQuery, fishMinutes]);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -44,7 +47,7 @@ export default function ProductsScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ProductCard product={item} />}
+        renderItem={({ item }) => <ProductCard product={item} fishMinutes={fishMinutes} />}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"

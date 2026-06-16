@@ -18,7 +18,11 @@ const animalMap = new Map(animals.map((a) => [a.id, a]));
  * Animal products (milk, wool, eggs, etc.) are not in the data files and are
  * assumed always available, so they contribute 0 to the chain.
  */
-export function calcChainMinutes(itemId: string, _visited = new Set<string>()): number {
+export function calcChainMinutes(
+  itemId: string,
+  _visited = new Set<string>(),
+  fishMinutes = FISH_CHAIN_MINUTES
+): number {
   if (_visited.has(itemId)) return 0; // cycle guard
   _visited.add(itemId);
 
@@ -30,18 +34,17 @@ export function calcChainMinutes(itemId: string, _visited = new Set<string>()): 
 
   const animal = animalMap.get(itemId);
   if (animal) {
-    // Full chain: grow crops → make feed → feed animal → animal produces
-    const feedChain = calcChainMinutes(animal.feedId, new Set(_visited));
+    const feedChain = calcChainMinutes(animal.feedId, new Set(_visited), fishMinutes);
     return feedChain + animal.productionMinutes;
   }
 
-  if (itemId === 'fish') return FISH_CHAIN_MINUTES; // lure: craft 85m + cooldown 150m
+  if (itemId === 'fish') return fishMinutes;
 
   const product = productMap.get(itemId);
-  if (!product) return 0; // unknown ingredient — treat as always available
+  if (!product) return 0;
 
   const maxIngredientChain = product.ingredients.reduce((max, ing) => {
-    return Math.max(max, calcChainMinutes(ing.itemId, new Set(_visited)));
+    return Math.max(max, calcChainMinutes(ing.itemId, new Set(_visited), fishMinutes));
   }, 0);
 
   return product.productionMinutes + maxIngredientChain;
@@ -79,7 +82,8 @@ export function getChainBreakdown(
   itemId: string,
   quantity = 1,
   depth = 0,
-  _parentCycle = new Set<string>()
+  _parentCycle = new Set<string>(),
+  fishMinutes = FISH_CHAIN_MINUTES
 ): ChainBreakdownItem[] {
   const results: ChainBreakdownItem[] = [];
 
@@ -116,12 +120,12 @@ export function getChainBreakdown(
   if (itemId === 'fish') {
     results.push({
       itemId: 'fish',
-      name: 'Fish (lure)',
+      name: fishMinutes === 0 ? 'Fish (pre-stocked)' : 'Fish (lure)',
       icon: '🐟',
       quantity,
       depth,
-      ownMinutes: FISH_CHAIN_MINUTES,
-      chainMinutes: FISH_CHAIN_MINUTES,
+      ownMinutes: fishMinutes,
+      chainMinutes: fishMinutes,
       isCriticalPath: false,
     });
     return results;
@@ -129,7 +133,7 @@ export function getChainBreakdown(
 
   const animal = animalMap.get(itemId);
   if (animal) {
-    const feedChain = calcChainMinutes(animal.feedId);
+    const feedChain = calcChainMinutes(animal.feedId, new Set(), fishMinutes);
     results.push({
       itemId,
       name: animal.name,
@@ -142,7 +146,7 @@ export function getChainBreakdown(
     });
     // Show feed sub-chain
     if (!_parentCycle.has(animal.feedId)) {
-      results.push(...getChainBreakdown(animal.feedId, quantity, depth + 1, new Set(_parentCycle)));
+      results.push(...getChainBreakdown(animal.feedId, quantity, depth + 1, new Set(_parentCycle), fishMinutes));
     }
     return results;
   }
@@ -165,7 +169,7 @@ export function getChainBreakdown(
 
   // Mark which ingredient is on the critical path (longest chain among siblings)
   const ingChainTimes = product.ingredients.map((ing) =>
-    calcChainMinutes(ing.itemId)
+    calcChainMinutes(ing.itemId, new Set(), fishMinutes)
   );
   const maxIngTime = Math.max(...ingChainTimes, 0);
 
@@ -176,7 +180,7 @@ export function getChainBreakdown(
     quantity,
     depth,
     ownMinutes: product.productionMinutes,
-    chainMinutes: calcChainMinutes(itemId),
+    chainMinutes: calcChainMinutes(itemId, new Set(), fishMinutes),
     isCriticalPath: false,
   });
 
@@ -187,7 +191,7 @@ export function getChainBreakdown(
     const ing = product.ingredients[i];
     if (cycle.has(ing.itemId)) continue;
 
-    const ingRows = getChainBreakdown(ing.itemId, ing.quantity * quantity, depth + 1, cycle);
+    const ingRows = getChainBreakdown(ing.itemId, ing.quantity * quantity, depth + 1, cycle, fishMinutes);
     // Mark top row of this ingredient branch if it is on the critical path
     if (ingRows.length > 0 && ingChainTimes[i] === maxIngTime) {
       ingRows[0] = { ...ingRows[0], isCriticalPath: true };

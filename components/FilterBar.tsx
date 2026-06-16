@@ -17,6 +17,7 @@ interface SortOption {
 
 const SORT_OPTIONS: SortOption[] = [
   { key: 'coinsPerHour', label: 'Coins/Hr', icon: '⚡' },
+  { key: 'craftingProfit', label: 'Profit', icon: '💰' },
   { key: 'sellPrice', label: 'Price', icon: '🪙' },
   { key: 'productionMinutes', label: 'Time', icon: '⏱' },
   { key: 'levelRequired', label: 'Level', icon: '⭐' },
@@ -40,6 +41,7 @@ const MACHINE_FILTERS: MachineFilter[] = [
   { id: 'juice_press', label: 'Juice', emoji: '🧃' },
   { id: 'smoothie_mixer', label: 'Smoothie', emoji: '🥤' },
   { id: 'ice_cream_maker', label: 'Ice Cream', emoji: '🍦' },
+  { id: 'coffee_kiosk', label: 'Coffee', emoji: '☕' },
   { id: 'jam_maker', label: 'Jam', emoji: '🫙' },
   { id: 'popcorn_pot', label: 'Popcorn', emoji: '🍿' },
 ];
@@ -47,19 +49,30 @@ const MACHINE_FILTERS: MachineFilter[] = [
 interface FilterBarProps {
   selectedSort: SortKey;
   selectedMachine: string;
+  sortOrder: 'asc' | 'desc';
   onSortChange: (key: SortKey) => void;
+  onSortOrderToggle: () => void;
   onMachineChange: (machineId: string) => void;
 }
 
 export function FilterBar({
   selectedSort,
   selectedMachine,
+  sortOrder,
   onSortChange,
+  onSortOrderToggle,
   onMachineChange,
 }: FilterBarProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionLabel}>Sort By</Text>
+      <View style={styles.sortHeader}>
+        <Text style={styles.sectionLabel}>Sort By</Text>
+        <TouchableOpacity style={styles.orderToggle} onPress={onSortOrderToggle}>
+          <Text style={styles.orderToggleText}>
+            {sortOrder === 'desc' ? '↓ High→Low' : '↑ Low→High'}
+          </Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -75,6 +88,11 @@ export function FilterBar({
             <Text style={[styles.chipText, selectedSort === opt.key && styles.chipTextActive]}>
               {opt.label}
             </Text>
+            {selectedSort === opt.key && (
+              <Text style={[styles.chipArrow, { color: Colors.primary }]}>
+                {sortOrder === 'desc' ? '↓' : '↑'}
+              </Text>
+            )}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -110,6 +128,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  sortHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 12,
+  },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -119,6 +143,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 6,
     marginTop: 4,
+  },
+  orderToggle: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    backgroundColor: Colors.primary + '15',
+    borderWidth: 1,
+    borderColor: Colors.primary + '40',
+    marginBottom: 4,
+  },
+  orderToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  chipArrow: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   scrollContent: {
     paddingHorizontal: 12,

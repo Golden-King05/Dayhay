@@ -1,17 +1,28 @@
 import { products as rawProducts, Product } from '../data/products';
-import { calcChainMinutes, calcChainCPH } from './efficiency';
+import { calcChainMinutes, calcChainCPH, calcCraftingValue } from './efficiency';
+import { FISH_CHAIN_MINUTES } from '../data/fishing';
+
+function enrichProducts(fishMinutes: number): Product[] {
+  return rawProducts.map((p) => {
+    const effectivePrice = p.sellPrice * p.quantityPerRun;
+    const chain = calcChainMinutes(p.id, new Set(), fishMinutes);
+    const chainCPH = calcChainCPH(effectivePrice, chain);
+    const efficiency: 'high' | 'medium' | 'low' =
+      chainCPH >= 60 ? 'high' : chainCPH >= 25 ? 'medium' : 'low';
+    const { craftingProfit } = calcCraftingValue(p);
+    return { ...p, coinsPerHour: chainCPH, efficiency, craftingProfit };
+  });
+}
 
 // Products with coinsPerHour set to full chain CPH (includes ingredient grow times)
-export const products: Product[] = rawProducts.map((p) => {
-  const effectivePrice = p.sellPrice * p.quantityPerRun;
-  const chain = calcChainMinutes(p.id);
-  const chainCPH = calcChainCPH(effectivePrice, chain);
-  const efficiency: 'high' | 'medium' | 'low' =
-    chainCPH >= 60 ? 'high' : chainCPH >= 25 ? 'medium' : 'low';
-  return { ...p, coinsPerHour: chainCPH, efficiency };
-});
+export const products: Product[] = enrichProducts(FISH_CHAIN_MINUTES);
 
-export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired';
+/** Re-compute products with a custom fish timing (0 = pre-stocked, FISH_CHAIN_MINUTES = lure). */
+export function getEnrichedProducts(fishMinutes: number): Product[] {
+  return enrichProducts(fishMinutes);
+}
+
+export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired' | 'craftingProfit';
 export type SortOrder = 'asc' | 'desc';
 
 export function sortProducts(
@@ -20,8 +31,8 @@ export function sortProducts(
   sortOrder: SortOrder = 'desc'
 ): Product[] {
   return [...products].sort((a, b) => {
-    const aVal = a[sortKey];
-    const bVal = b[sortKey];
+    const aVal = sortKey === 'craftingProfit' ? (a.craftingProfit ?? 0) : a[sortKey as keyof Product] as number;
+    const bVal = sortKey === 'craftingProfit' ? (b.craftingProfit ?? 0) : b[sortKey as keyof Product] as number;
     if (sortOrder === 'desc') return bVal - aVal;
     return aVal - bVal;
   });

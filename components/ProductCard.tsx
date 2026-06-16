@@ -10,19 +10,21 @@ import { Product } from '../data/products';
 import { formatTime, getEfficiencyColor } from '../utils/optimizer';
 import { getChainBreakdown, calcChainMinutes, calcCraftingValue } from '../utils/efficiency';
 import { MachineIcon } from './MachineIcon';
+import { FISH_CHAIN_MINUTES } from '../data/fishing';
 
 interface ProductCardProps {
   product: Product;
   rank?: number;
   showRank?: boolean;
+  fishMinutes?: number;
 }
 
-export function ProductCard({ product, rank, showRank }: ProductCardProps) {
+export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_MINUTES }: ProductCardProps) {
   const [expanded, setExpanded] = useState(false);
   const efficiencyColor = getEfficiencyColor(product.efficiency);
 
-  const chainSteps = expanded ? getChainBreakdown(product.id) : [];
-  const chainMinutes = expanded ? calcChainMinutes(product.id) : 0;
+  const chainSteps = expanded ? getChainBreakdown(product.id, 1, 0, new Set(), fishMinutes) : [];
+  const chainMinutes = expanded ? calcChainMinutes(product.id, new Set(), fishMinutes) : 0;
   const craftingValue = expanded ? calcCraftingValue(product) : null;
 
   return (

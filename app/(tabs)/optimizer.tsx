@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -12,7 +13,10 @@ import { crops } from '../../data/crops';
 import { ProductCard } from '../../components/ProductCard';
 import { CropCard } from '../../components/CropCard';
 import { FilterBar } from '../../components/FilterBar';
-import { products, sortProducts, filterByMachine, SortKey } from '../../utils/optimizer';
+import { getEnrichedProducts, sortProducts, filterByMachine, SortKey } from '../../utils/optimizer';
+import { useFishSetting } from '../../hooks/useFishSetting';
+import { formatTime } from '../../utils/optimizer';
+import { FISH_CHAIN_MINUTES } from '../../data/fishing';
 
 type ListItem =
   | { kind: 'product'; data: (typeof products)[0] }
@@ -21,9 +25,11 @@ type ListItem =
 export default function OptimizerScreen() {
   const [selectedSort, setSelectedSort] = useState<SortKey>('coinsPerHour');
   const [selectedMachine, setSelectedMachine] = useState('all');
-  const [sortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const { fishEnabled, fishMinutes, toggleFish } = useFishSetting();
 
   const rankedList = useMemo((): ListItem[] => {
+    const products = getEnrichedProducts(fishMinutes);
     const filteredProducts = filterByMachine(products, selectedMachine);
     const productItems: ListItem[] = sortProducts(filteredProducts, selectedSort, sortOrder)
       .map((p) => ({ kind: 'product', data: p }));
@@ -36,20 +42,27 @@ export default function OptimizerScreen() {
 
     if (selectedSort === 'coinsPerHour') {
       all.sort((a, b) => {
-        const aCPH = a.kind === 'product' ? a.data.coinsPerHour : a.data.coinsPerHour;
-        const bCPH = b.kind === 'product' ? b.data.coinsPerHour : b.data.coinsPerHour;
+        const aCPH = a.data.coinsPerHour;
+        const bCPH = b.data.coinsPerHour;
         return sortOrder === 'desc' ? bCPH - aCPH : aCPH - bCPH;
       });
     } else if (selectedSort === 'sellPrice') {
       all.sort((a, b) => {
-        const aVal = a.kind === 'product' ? a.data.sellPrice : a.data.sellPrice;
-        const bVal = b.kind === 'product' ? b.data.sellPrice : b.data.sellPrice;
+        const aVal = a.data.sellPrice;
+        const bVal = b.data.sellPrice;
+        return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
+      });
+    } else if (selectedSort === 'craftingProfit') {
+      // Crops have no ingredient cost so treat their full sell price as profit
+      all.sort((a, b) => {
+        const aVal = a.kind === 'product' ? (a.data.craftingProfit ?? 0) : a.data.sellPrice;
+        const bVal = b.kind === 'product' ? (b.data.craftingProfit ?? 0) : b.data.sellPrice;
         return sortOrder === 'desc' ? bVal - aVal : aVal - bVal;
       });
     }
 
     return all;
-  }, [selectedSort, selectedMachine, sortOrder]);
+  }, [selectedSort, selectedMachine, sortOrder, fishMinutes]);
 
   const highCount = rankedList.filter((i) =>
     i.kind === 'product'
@@ -72,9 +85,26 @@ export default function OptimizerScreen() {
       <FilterBar
         selectedSort={selectedSort}
         selectedMachine={selectedMachine}
-        onSortChange={setSelectedSort}
+        sortOrder={sortOrder}
+        onSortChange={(key) => {
+          setSelectedSort(key);
+          setSortOrder('desc'); // reset to desc when switching sort type
+        }}
+        onSortOrderToggle={() => setSortOrder((o) => (o === 'desc' ? 'asc' : 'desc'))}
         onMachineChange={setSelectedMachine}
       />
+
+      <View style={styles.fishToggleBar}>
+        <Text style={styles.fishToggleLabel}>
+          🐟 Fish: {fishEnabled ? `Lure (${formatTime(FISH_CHAIN_MINUTES)}/fish)` : 'Pre-stocked (free)'}
+        </Text>
+        <Switch
+          value={fishEnabled}
+          onValueChange={toggleFish}
+          trackColor={{ false: Colors.border, true: Colors.primary + '88' }}
+          thumbColor={fishEnabled ? Colors.primary : Colors.textLight}
+        />
+      </View>
 
       <View style={styles.summaryBar}>
         <View style={styles.summaryItem}>
@@ -111,6 +141,7 @@ export default function OptimizerScreen() {
               product={item.data}
               rank={index + 1}
               showRank={isTopThree}
+              fishMinutes={fishMinutes}
             />
           );
         }}
@@ -138,6 +169,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  fishToggleBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: Colors.cardBackground,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  fishToggleLabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: '500',
   },
   summaryBar: {
     flexDirection: 'row',
