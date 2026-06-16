@@ -41,6 +41,14 @@ export const machines: Machine[] = [
     description: 'Bakes bread and cakes',
   },
   {
+    id: 'loom',
+    name: 'Loom',
+    icon: 'loom',
+    emoji: '🪡',
+    levelRequired: 13,
+    description: 'Weaves cotton and wool into fabric and clothing',
+  },
+  {
     id: 'sewing_machine',
     name: 'Sewing Machine',
     icon: 'sewing-machine',
