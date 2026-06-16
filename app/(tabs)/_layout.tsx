@@ -64,6 +64,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="compare"
+        options={{
+          title: 'Orders',
+          tabBarLabel: 'Orders',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="swap-horizontal" size={size} color={color} />
+          ),
+          headerTitle: '🚢 Order Comparer',
+        }}
+      />
+      <Tabs.Screen
         name="timers"
         options={{
           title: 'Timers',
