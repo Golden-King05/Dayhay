@@ -349,6 +349,23 @@ const rawProducts = [
       { itemId: 'chili_pepper', itemName: 'Chili Pepper', quantity: 1, icon: '🌶️' },
     ],
   },
+  {
+    id: 'potato_bread',
+    name: 'Potato Bread',
+    icon: '🍞',
+    machineId: 'bakery',
+    machineName: 'Bakery',
+    machineEmoji: '🍞',
+    productionMinutes: 45,
+    sellPrice: 284,
+    levelRequired: 0,
+    ingredients: [
+      { itemId: 'potato', itemName: 'Potato', quantity: 2, icon: '🥔' },
+      { itemId: 'sugar', itemName: 'White Sugar', quantity: 1, icon: '🍚' },
+      { itemId: 'egg', itemName: 'Egg', quantity: 3, icon: '🥚' },
+      { itemId: 'butter', itemName: 'Butter', quantity: 1, icon: '🧈' },
+    ],
+  },
   // ── BBQ Grill ──────────────────────────────────────────────
   {
     id: 'lamb_skewer',
