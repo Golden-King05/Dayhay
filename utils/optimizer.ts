@@ -1,4 +1,15 @@
-import { Product } from '../data/products';
+import { products as rawProducts, Product } from '../data/products';
+import { calcChainMinutes, calcChainCPH } from './efficiency';
+
+// Products with coinsPerHour set to full chain CPH (includes ingredient grow times)
+export const products: Product[] = rawProducts.map((p) => {
+  const effectivePrice = p.sellPrice * p.quantityPerRun;
+  const chain = calcChainMinutes(p.id);
+  const chainCPH = calcChainCPH(effectivePrice, chain);
+  const efficiency: 'high' | 'medium' | 'low' =
+    chainCPH >= 60 ? 'high' : chainCPH >= 25 ? 'medium' : 'low';
+  return { ...p, coinsPerHour: chainCPH, efficiency };
+});
 
 export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired';
 export type SortOrder = 'asc' | 'desc';

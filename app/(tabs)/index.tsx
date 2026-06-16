@@ -10,10 +10,9 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
-import { products } from '../../data/products';
 import { machines } from '../../data/machines';
 import { crops } from '../../data/crops';
-import { getTopProducts, formatTime } from '../../utils/optimizer';
+import { products, getTopProducts, formatTime } from '../../utils/optimizer';
 
 export default function HomeScreen() {
   const router = useRouter();

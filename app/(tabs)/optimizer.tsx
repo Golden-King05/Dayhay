@@ -8,10 +8,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
-import { products } from '../../data/products';
 import { ProductCard } from '../../components/ProductCard';
 import { FilterBar } from '../../components/FilterBar';
-import { sortProducts, filterByMachine, SortKey } from '../../utils/optimizer';
+import { products, sortProducts, filterByMachine, SortKey } from '../../utils/optimizer';
 
 export default function OptimizerScreen() {
   const [selectedSort, setSelectedSort] = useState<SortKey>('coinsPerHour');
