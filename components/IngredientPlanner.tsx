@@ -36,10 +36,13 @@ interface RecipeMatch {
   machineEmoji: string;
   sellPrice: number;
   productionMinutes: number;
+  coinsPerHour: number;
   coveredCount: number;
   totalCount: number;
   ingredients: IngMatch[];
 }
+
+type PlannerSort = 'sellPrice' | 'coinsPerHour';
 
 interface Props {
   visible: boolean;
@@ -51,6 +54,7 @@ export function IngredientPlanner({ visible, onClose }: Props) {
   const [pendingItem, setPendingItem] = useState<SellableItem | null>(null);
   const [pendingQty, setPendingQty] = useState(1);
   const [stock, setStock] = useState<StockEntry[]>([]);
+  const [sortMode, setSortMode] = useState<PlannerSort>('sellPrice');
 
   const allItems = getAllSellableItems();
 
@@ -84,6 +88,9 @@ export function IngredientPlanner({ visible, onClose }: Props) {
         if (!usesAny) return [];
 
         const coveredCount = ingredients.filter((i) => i.covered).length;
+        const coinsPerHour = p.productionMinutes > 0
+          ? Math.round((p.sellPrice / p.productionMinutes) * 60 * 10) / 10
+          : 0;
         return [{
           productId: p.id,
           name: p.name,
@@ -91,18 +98,18 @@ export function IngredientPlanner({ visible, onClose }: Props) {
           machineEmoji: p.machineEmoji,
           sellPrice: p.sellPrice,
           productionMinutes: p.productionMinutes,
+          coinsPerHour,
           coveredCount,
           totalCount: ingredients.length,
           ingredients,
         }];
       })
-      .sort((a, b) => {
-        const aRatio = a.coveredCount / a.totalCount;
-        const bRatio = b.coveredCount / b.totalCount;
-        if (bRatio !== aRatio) return bRatio - aRatio;
-        return b.sellPrice - a.sellPrice;
-      });
-  }, [stockMap]);
+      .sort((a, b) =>
+        sortMode === 'coinsPerHour'
+          ? b.coinsPerHour - a.coinsPerHour
+          : b.sellPrice - a.sellPrice
+      );
+  }, [stockMap, sortMode]);
 
   const canMake = matches.filter((m) => m.coveredCount === m.totalCount);
   const partial = matches.filter((m) => m.coveredCount < m.totalCount);
@@ -270,10 +277,32 @@ export function IngredientPlanner({ visible, onClose }: Props) {
               </View>
             )}
 
+            {matches.length > 0 && (
+              <View style={styles.sortToggleRow}>
+                <Text style={styles.sortToggleLabel}>Sort by:</Text>
+                <TouchableOpacity
+                  style={[styles.sortToggleBtn, sortMode === 'sellPrice' && styles.sortToggleBtnActive]}
+                  onPress={() => setSortMode('sellPrice')}
+                >
+                  <Text style={[styles.sortToggleBtnText, sortMode === 'sellPrice' && styles.sortToggleBtnTextActive]}>
+                    🪙 Sell Price
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.sortToggleBtn, sortMode === 'coinsPerHour' && styles.sortToggleBtnActive]}
+                  onPress={() => setSortMode('coinsPerHour')}
+                >
+                  <Text style={[styles.sortToggleBtnText, sortMode === 'coinsPerHour' && styles.sortToggleBtnTextActive]}>
+                    ⚡ Coins/Hr
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {canMake.length > 0 && (
               <>
                 <Text style={styles.sectionLabel}>✅ CAN MAKE NOW</Text>
-                {canMake.map((m) => <RecipeRow key={m.productId} match={m} />)}
+                {canMake.map((m) => <RecipeRow key={m.productId} match={m} sortMode={sortMode} />)}
               </>
             )}
 
@@ -282,7 +311,7 @@ export function IngredientPlanner({ visible, onClose }: Props) {
                 <Text style={[styles.sectionLabel, canMake.length > 0 && { marginTop: 16 }]}>
                   🟡 USES YOUR ITEMS
                 </Text>
-                {partial.map((m) => <RecipeRow key={m.productId} match={m} />)}
+                {partial.map((m) => <RecipeRow key={m.productId} match={m} sortMode={sortMode} />)}
               </>
             )}
 
@@ -302,7 +331,7 @@ export function IngredientPlanner({ visible, onClose }: Props) {
   );
 }
 
-function RecipeRow({ match }: { match: RecipeMatch }) {
+function RecipeRow({ match, sortMode }: { match: RecipeMatch; sortMode: PlannerSort }) {
   const allCovered = match.coveredCount === match.totalCount;
   return (
     <View style={[recipeStyles.card, allCovered && recipeStyles.cardGreen]}>
@@ -311,7 +340,10 @@ function RecipeRow({ match }: { match: RecipeMatch }) {
         <View style={recipeStyles.info}>
           <Text style={recipeStyles.name}>{match.name}</Text>
           <Text style={recipeStyles.meta}>
-            {match.machineEmoji} · ⏱ {formatTime(match.productionMinutes)} · 🪙 {match.sellPrice}c
+            {match.machineEmoji} · ⏱ {formatTime(match.productionMinutes)}
+            {sortMode === 'coinsPerHour'
+              ? ` · ⚡ ${match.coinsPerHour} c/hr`
+              : ` · 🪙 ${match.sellPrice}c`}
           </Text>
         </View>
         <View style={[recipeStyles.badge, allCovered ? recipeStyles.badgeGreen : recipeStyles.badgeAmber]}>
@@ -551,6 +583,39 @@ const styles = StyleSheet.create({
   resultsContent: {
     paddingTop: 12,
     paddingBottom: 32,
+  },
+  sortToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    gap: 6,
+  },
+  sortToggleLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textLight,
+    marginRight: 2,
+  },
+  sortToggleBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  sortToggleBtnActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '18',
+  },
+  sortToggleBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  sortToggleBtnTextActive: {
+    color: Colors.primary,
   },
   emptyState: {
     alignItems: 'center',
