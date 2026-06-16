@@ -17,14 +17,15 @@ interface ProductCardProps {
   rank?: number;
   showRank?: boolean;
   fishMinutes?: number;
+  ownedTreeIds?: Set<string>;
 }
 
-export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_MINUTES }: ProductCardProps) {
+export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_MINUTES, ownedTreeIds = new Set() }: ProductCardProps) {
   const [expanded, setExpanded] = useState(false);
   const efficiencyColor = getEfficiencyColor(product.efficiency);
 
-  const chainSteps = expanded ? getChainBreakdown(product.id, 1, 0, new Set(), fishMinutes) : [];
-  const chainMinutes = expanded ? calcChainMinutes(product.id, new Set(), fishMinutes) : 0;
+  const chainSteps = expanded ? getChainBreakdown(product.id, 1, 0, new Set(), fishMinutes, ownedTreeIds) : [];
+  const chainMinutes = expanded ? calcChainMinutes(product.id, new Set(), fishMinutes, ownedTreeIds) : 0;
   const craftingValue = calcCraftingValue(product);
 
   return (

@@ -18,6 +18,7 @@ import { FilterBar } from '../../components/FilterBar';
 import { getEnrichedProducts, sortProducts, filterByMachine, SortKey, OVERNIGHT_MIN_MINUTES } from '../../utils/optimizer';
 import { useFishSetting } from '../../hooks/useFishSetting';
 import { useBeeSetting } from '../../hooks/useBeeSetting';
+import { useTreeSetting } from '../../hooks/useTreeSetting';
 import { formatTime } from '../../utils/optimizer';
 import { FISH_CHAIN_MINUTES } from '../../data/fishing';
 import { MAX_BEE_NESTS } from '../../data/bees';
@@ -35,11 +36,12 @@ export default function OptimizerScreen() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const { fishEnabled, fishMinutes, toggleFish } = useFishSetting();
   const { beeNests, setNests } = useBeeSetting();
+  const { ownedTreeIds, toggleTree } = useTreeSetting();
 
   const isOvernight = selectedMachine === 'overnight';
 
   const rankedList = useMemo((): ListItem[] => {
-    const products = getEnrichedProducts(fishMinutes);
+    const products = getEnrichedProducts(fishMinutes, ownedTreeIds);
     const filteredProducts = filterByMachine(products, selectedMachine);
     const productItems: ListItem[] = sortProducts(filteredProducts, selectedSort, sortOrder)
       .map((p) => ({ kind: 'product', data: p }));
@@ -85,7 +87,7 @@ export default function OptimizerScreen() {
     all.sort((a, b) => dir(getVal(a), getVal(b)));
 
     return all;
-  }, [selectedSort, selectedMachine, sortOrder, fishMinutes, isOvernight]);
+  }, [selectedSort, selectedMachine, sortOrder, fishMinutes, ownedTreeIds, isOvernight]);
 
   const highCount = rankedList.filter((i) =>
     i.kind === 'product' ? i.data.efficiency === 'high' : i.data.coinsPerHour >= 60
@@ -146,6 +148,24 @@ export default function OptimizerScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        <View style={[styles.settingsRow, styles.settingsRowBorder]}>
+          <Text style={styles.settingsLabel}>🌳 My trees</Text>
+          <View style={styles.treeRow}>
+            {trees.map((t) => {
+              const owned = ownedTreeIds.has(t.id);
+              return (
+                <TouchableOpacity
+                  key={t.id}
+                  style={[styles.treeChip, owned && styles.treeChipOwned]}
+                  onPress={() => toggleTree(t.id)}
+                >
+                  <Text style={styles.treeChipIcon}>{t.icon}</Text>
+                  {owned && <Text style={styles.treeChipCheck}>✓</Text>}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
       </View>
 
       <View style={styles.summaryBar}>
@@ -193,6 +213,7 @@ export default function OptimizerScreen() {
               rank={index + 1}
               showRank={isTopThree}
               fishMinutes={fishMinutes}
+              ownedTreeIds={ownedTreeIds}
             />
           );
         }}
@@ -274,6 +295,41 @@ const styles = StyleSheet.create({
     color: Colors.text,
     minWidth: 40,
     textAlign: 'center',
+  },
+  treeRow: {
+    flexDirection: 'row',
+    gap: 6,
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+  },
+  treeChip: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.background,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  treeChipOwned: {
+    backgroundColor: Colors.primary + '20',
+    borderColor: Colors.primary,
+  },
+  treeChipIcon: {
+    fontSize: 16,
+  },
+  treeChipCheck: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    fontSize: 9,
+    fontWeight: '900',
+    color: Colors.primary,
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 4,
+    lineHeight: 12,
+    paddingHorizontal: 1,
   },
   summaryBar: {
     flexDirection: 'row',

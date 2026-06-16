@@ -2,10 +2,10 @@ import { products as rawProducts, Product } from '../data/products';
 import { calcChainMinutes, calcChainCPH, calcCraftingValue } from './efficiency';
 import { FISH_CHAIN_MINUTES } from '../data/fishing';
 
-function enrichProducts(fishMinutes: number): Product[] {
+function enrichProducts(fishMinutes: number, ownedTreeIds = new Set<string>()): Product[] {
   return rawProducts.map((p) => {
     const effectivePrice = p.sellPrice * p.quantityPerRun;
-    const chain = calcChainMinutes(p.id, new Set(), fishMinutes);
+    const chain = calcChainMinutes(p.id, new Set(), fishMinutes, ownedTreeIds);
     const chainCPH = calcChainCPH(effectivePrice, chain);
     const efficiency: 'high' | 'medium' | 'low' =
       chainCPH >= 60 ? 'high' : chainCPH >= 25 ? 'medium' : 'low';
@@ -18,9 +18,9 @@ function enrichProducts(fishMinutes: number): Product[] {
 // Products with coinsPerHour set to full chain CPH (includes ingredient grow times)
 export const products: Product[] = enrichProducts(FISH_CHAIN_MINUTES);
 
-/** Re-compute products with a custom fish timing (0 = pre-stocked, FISH_CHAIN_MINUTES = lure). */
-export function getEnrichedProducts(fishMinutes: number): Product[] {
-  return enrichProducts(fishMinutes);
+/** Re-compute products with custom fish timing and owned tree set. */
+export function getEnrichedProducts(fishMinutes: number, ownedTreeIds = new Set<string>()): Product[] {
+  return enrichProducts(fishMinutes, ownedTreeIds);
 }
 
 export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired' | 'craftingProfit' | 'markupPercent' | 'perRunValue';

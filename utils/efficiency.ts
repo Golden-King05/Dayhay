@@ -23,7 +23,8 @@ const oreMap = new Map(ores.map((o) => [o.id, o]));
 export function calcChainMinutes(
   itemId: string,
   _visited = new Set<string>(),
-  fishMinutes = FISH_CHAIN_MINUTES
+  fishMinutes = FISH_CHAIN_MINUTES,
+  ownedTreeIds = new Set<string>()
 ): number {
   if (_visited.has(itemId)) return 0; // cycle guard
   _visited.add(itemId);
@@ -32,23 +33,24 @@ export function calcChainMinutes(
   if (crop) return crop.growTimeMinutes;
 
   const tree = treeMap.get(itemId);
-  if (tree) return tree.cycleMinutes;
+  if (tree) return ownedTreeIds.has(itemId) ? 0 : tree.cycleMinutes;
 
   const animal = animalMap.get(itemId);
   if (animal) {
-    const feedChain = calcChainMinutes(animal.feedId, new Set(_visited), fishMinutes);
+    const feedChain = calcChainMinutes(animal.feedId, new Set(_visited), fishMinutes, ownedTreeIds);
     return feedChain + animal.productionMinutes;
   }
 
   if (itemId === 'fish') return fishMinutes;
   if (itemId === 'nectar_bush') return 0;
-  if (oreMap.has(itemId)) return 0; // mining time varies; treated as 0 until known
+  if (oreMap.has(itemId)) return 0;
+  if (itemId === 'gem') return 0;
 
   const product = productMap.get(itemId);
   if (!product) return 0;
 
   const maxIngredientChain = product.ingredients.reduce((max, ing) => {
-    return Math.max(max, calcChainMinutes(ing.itemId, new Set(_visited), fishMinutes));
+    return Math.max(max, calcChainMinutes(ing.itemId, new Set(_visited), fishMinutes, ownedTreeIds));
   }, 0);
 
   return product.productionMinutes + maxIngredientChain;
@@ -87,7 +89,8 @@ export function getChainBreakdown(
   quantity = 1,
   depth = 0,
   _parentCycle = new Set<string>(),
-  fishMinutes = FISH_CHAIN_MINUTES
+  fishMinutes = FISH_CHAIN_MINUTES,
+  ownedTreeIds = new Set<string>()
 ): ChainBreakdownItem[] {
   const results: ChainBreakdownItem[] = [];
 
@@ -108,14 +111,15 @@ export function getChainBreakdown(
 
   const tree = treeMap.get(itemId);
   if (tree) {
+    const owned = ownedTreeIds.has(itemId);
     results.push({
       itemId,
-      name: tree.name,
+      name: owned ? `${tree.name} (owned — skip wait)` : tree.name,
       icon: tree.icon,
       quantity,
       depth,
-      ownMinutes: tree.cycleMinutes,
-      chainMinutes: tree.cycleMinutes,
+      ownMinutes: owned ? 0 : tree.cycleMinutes,
+      chainMinutes: owned ? 0 : tree.cycleMinutes,
       isCriticalPath: false,
     });
     return results;
@@ -180,7 +184,7 @@ export function getChainBreakdown(
 
   const animal = animalMap.get(itemId);
   if (animal) {
-    const feedChain = calcChainMinutes(animal.feedId, new Set(), fishMinutes);
+    const feedChain = calcChainMinutes(animal.feedId, new Set(), fishMinutes, ownedTreeIds);
     results.push({
       itemId,
       name: animal.name,
@@ -191,16 +195,14 @@ export function getChainBreakdown(
       chainMinutes: feedChain + animal.productionMinutes,
       isCriticalPath: false,
     });
-    // Show feed sub-chain
     if (!_parentCycle.has(animal.feedId)) {
-      results.push(...getChainBreakdown(animal.feedId, quantity, depth + 1, new Set(_parentCycle), fishMinutes));
+      results.push(...getChainBreakdown(animal.feedId, quantity, depth + 1, new Set(_parentCycle), fishMinutes, ownedTreeIds));
     }
     return results;
   }
 
   const product = productMap.get(itemId);
   if (!product) {
-    // Unknown ingredient
     results.push({
       itemId,
       name: itemId.replace(/_/g, ' '),
@@ -216,7 +218,7 @@ export function getChainBreakdown(
 
   // Mark which ingredient is on the critical path (longest chain among siblings)
   const ingChainTimes = product.ingredients.map((ing) =>
-    calcChainMinutes(ing.itemId, new Set(), fishMinutes)
+    calcChainMinutes(ing.itemId, new Set(), fishMinutes, ownedTreeIds)
   );
   const maxIngTime = Math.max(...ingChainTimes, 0);
 
@@ -227,7 +229,7 @@ export function getChainBreakdown(
     quantity,
     depth,
     ownMinutes: product.productionMinutes,
-    chainMinutes: calcChainMinutes(itemId, new Set(), fishMinutes),
+    chainMinutes: calcChainMinutes(itemId, new Set(), fishMinutes, ownedTreeIds),
     isCriticalPath: false,
   });
 
@@ -238,7 +240,7 @@ export function getChainBreakdown(
     const ing = product.ingredients[i];
     if (cycle.has(ing.itemId)) continue;
 
-    const ingRows = getChainBreakdown(ing.itemId, ing.quantity * quantity, depth + 1, cycle, fishMinutes);
+    const ingRows = getChainBreakdown(ing.itemId, ing.quantity * quantity, depth + 1, cycle, fishMinutes, ownedTreeIds);
     // Mark top row of this ingredient branch if it is on the critical path
     if (ingRows.length > 0 && ingChainTimes[i] === maxIngTime) {
       ingRows[0] = { ...ingRows[0], isCriticalPath: true };
