@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Animated,
 } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { Product } from '../data/products';
 import { formatTime, getEfficiencyColor } from '../utils/optimizer';
+import { getChainBreakdown, calcChainMinutes } from '../utils/efficiency';
 import { MachineIcon } from './MachineIcon';
 
 interface ProductCardProps {
@@ -20,6 +20,9 @@ interface ProductCardProps {
 export function ProductCard({ product, rank, showRank }: ProductCardProps) {
   const [expanded, setExpanded] = useState(false);
   const efficiencyColor = getEfficiencyColor(product.efficiency);
+
+  const chainSteps = expanded ? getChainBreakdown(product.id) : [];
+  const chainMinutes = expanded ? calcChainMinutes(product.id) : 0;
 
   return (
     <TouchableOpacity
@@ -58,7 +61,7 @@ export function ProductCard({ product, rank, showRank }: ProductCardProps) {
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailIcon}>🪙</Text>
-          <Text style={styles.detailText}>{product.sellPrice}</Text>
+          <Text style={styles.detailText}>{product.sellPrice} coins</Text>
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailIcon}>⭐</Text>
@@ -67,15 +70,36 @@ export function ProductCard({ product, rank, showRank }: ProductCardProps) {
       </View>
 
       {expanded && (
-        <View style={styles.ingredients}>
-          <Text style={styles.ingredientsTitle}>Ingredients:</Text>
-          <View style={styles.ingredientsList}>
-            {product.ingredients.map((ing) => (
-              <View key={ing.itemId} style={styles.ingredientChip}>
-                <Text style={styles.ingredientIcon}>{ing.icon}</Text>
-                <Text style={styles.ingredientText}>{ing.quantity}x {ing.itemName}</Text>
+        <View style={styles.chain}>
+          <View style={styles.chainHeader}>
+            <Text style={styles.chainTitle}>Full production chain</Text>
+            <Text style={styles.chainTotal}>{formatTime(chainMinutes)} total</Text>
+          </View>
+          {chainSteps.map((step, i) => (
+            <View
+              key={`${step.itemId}-${i}`}
+              style={[
+                styles.chainRow,
+                { paddingLeft: 8 + step.depth * 16 },
+                step.isCriticalPath && styles.chainRowCritical,
+              ]}
+            >
+              <Text style={styles.chainIcon}>{step.icon}</Text>
+              <View style={styles.chainInfo}>
+                <Text style={[styles.chainName, step.isCriticalPath && styles.chainNameCritical]}>
+                  {step.quantity > 1 ? `${step.quantity}× ` : ''}{step.name}
+                </Text>
               </View>
-            ))}
+              <Text style={[styles.chainTime, step.isCriticalPath && styles.chainTimeCritical]}>
+                {formatTime(step.ownMinutes)}
+                {step.isCriticalPath ? ' ⚠' : ''}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.chainFooter}>
+            <Text style={styles.chainFooterText}>
+              🪙 {product.sellPrice} ÷ {formatTime(chainMinutes)} = {product.coinsPerHour} coins/hr
+            </Text>
           </View>
         </View>
       )}
@@ -181,40 +205,74 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: '500',
   },
-  ingredients: {
+  chain: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  ingredientsTitle: {
+  chainHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  chainTitle: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textSecondary,
-    marginBottom: 6,
   },
-  ingredientsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+  chainTotal: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primary,
   },
-  ingredientChip: {
+  chainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: 3,
+    paddingVertical: 3,
+    gap: 6,
   },
-  ingredientIcon: {
-    fontSize: 13,
+  chainRowCritical: {
+    backgroundColor: Colors.accent + '15',
+    borderRadius: 6,
+    paddingHorizontal: 4,
   },
-  ingredientText: {
-    fontSize: 11,
+  chainIcon: {
+    fontSize: 14,
+    width: 20,
+    textAlign: 'center',
+  },
+  chainInfo: {
+    flex: 1,
+  },
+  chainName: {
+    fontSize: 12,
     color: Colors.text,
+  },
+  chainNameCritical: {
+    fontWeight: '700',
+    color: Colors.accentDark,
+  },
+  chainTime: {
+    fontSize: 11,
+    color: Colors.textSecondary,
     fontWeight: '500',
+  },
+  chainTimeCritical: {
+    color: Colors.accentDark,
+    fontWeight: '700',
+  },
+  chainFooter: {
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  chainFooterText: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
