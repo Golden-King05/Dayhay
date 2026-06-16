@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import { Colors } from '../../constants/Colors';
 import { useTimers, ActiveTimer } from '../../hooks/useTimers';
 import { products } from '../../data/products';
 import { crops } from '../../data/crops';
+import { trees } from '../../data/trees';
+import { formatTime } from '../../utils/optimizer';
 
 // ── Countdown display ────────────────────────────────────────
 function useNow(interval = 1000) {
@@ -62,7 +64,7 @@ function TimerCard({
         <View style={styles.cardInfo}>
           <Text style={styles.cardName}>{timer.productName}</Text>
           <Text style={styles.cardCategory}>
-            {timer.category === 'crop' ? '🌱 Crop' : '⚙️ Machine'}
+            {timer.category === 'crop' ? '🌱 Crop' : timer.category === 'tree' ? '🌳 Tree / Bush' : '⚙️ Machine'}
           </Text>
           <View style={styles.progressBar}>
             <View
@@ -97,7 +99,7 @@ interface PickerItem {
   name: string;
   icon: string;
   durationMinutes: number;
-  category: 'crop' | 'machine';
+  category: 'crop' | 'tree' | 'machine';
   subtitle: string;
 }
 
@@ -108,7 +110,15 @@ const allPickerItems: PickerItem[] = [
     icon: c.icon,
     durationMinutes: c.growTimeMinutes,
     category: 'crop' as const,
-    subtitle: `${c.growTimeMinutes < 60 ? c.growTimeMinutes + 'm' : (c.growTimeMinutes / 60).toFixed(0) + 'h'} · Lv ${c.levelRequired}`,
+    subtitle: `${formatTime(c.growTimeMinutes)} · Lv ${c.levelRequired}`,
+  })),
+  ...trees.map((t) => ({
+    id: t.id,
+    name: t.plantName,
+    icon: t.icon,
+    durationMinutes: t.cycleMinutes,
+    category: 'tree' as const,
+    subtitle: `${formatTime(t.cycleMinutes)} per cycle · ${t.quantityPerCycle}× per harvest`,
   })),
   ...products.map((p) => ({
     id: p.id,
@@ -116,7 +126,7 @@ const allPickerItems: PickerItem[] = [
     icon: p.icon,
     durationMinutes: p.productionMinutes,
     category: 'machine' as const,
-    subtitle: `${p.productionMinutes < 60 ? p.productionMinutes + 'm' : (p.productionMinutes / 60).toFixed(1) + 'h'} · ${p.machineName}`,
+    subtitle: `${formatTime(p.productionMinutes)} · ${p.machineName}`,
   })),
 ];
 
@@ -157,11 +167,13 @@ function AddTimerModal({
     item.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const crops = filtered.filter((i) => i.category === 'crop');
-  const machines = filtered.filter((i) => i.category === 'machine');
+  const cropItems = filtered.filter((i) => i.category === 'crop');
+  const treeItems = filtered.filter((i) => i.category === 'tree');
+  const machineItems = filtered.filter((i) => i.category === 'machine');
   const sections = [
-    ...(crops.length ? [{ title: '🌱 Crops', data: crops }] : []),
-    ...(machines.length ? [{ title: '⚙️ Machine Products', data: machines }] : []),
+    ...(cropItems.length ? [{ title: '🌱 Crops', data: cropItems }] : []),
+    ...(treeItems.length ? [{ title: '🌳 Trees & Bushes', data: treeItems }] : []),
+    ...(machineItems.length ? [{ title: '⚙️ Machine Products', data: machineItems }] : []),
   ];
 
   return (

@@ -31,7 +31,10 @@ export async function scheduleReadyNotification(
       sound: true,
       badge: 1,
     },
-    trigger: { date: finishesAt },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: finishesAt,
+    },
   });
   return id;
 }

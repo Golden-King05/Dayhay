@@ -13,7 +13,7 @@ export interface ActiveTimer {
   productId: string;
   productName: string;
   productIcon: string;
-  category: 'crop' | 'machine';
+  category: 'crop' | 'tree' | 'machine';
   startedAt: number;
   durationMinutes: number;
   finishesAt: number;
@@ -50,7 +50,7 @@ export function useTimers() {
       productId: string,
       productName: string,
       productIcon: string,
-      category: 'crop' | 'machine',
+      category: 'crop' | 'tree' | 'machine',
       durationMinutes: number,
       startedMinutesAgo = 0
     ) => {

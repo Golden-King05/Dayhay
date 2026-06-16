@@ -9,6 +9,7 @@ import { Colors } from '../constants/Colors';
 import { Product } from '../data/products';
 import { formatTime, getEfficiencyColor } from '../utils/optimizer';
 import { getChainBreakdown, calcChainMinutes, calcCraftingValue } from '../utils/efficiency';
+import { buildProductionPlan } from '../utils/planner';
 import { MachineIcon } from './MachineIcon';
 import { FISH_CHAIN_MINUTES } from '../data/fishing';
 
@@ -20,13 +21,18 @@ interface ProductCardProps {
   ownedTreeIds?: Set<string>;
 }
 
+const QUICK_QTYS = [1, 2, 5, 10];
+
 export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_MINUTES, ownedTreeIds = new Set() }: ProductCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [showPlanner, setShowPlanner] = useState(false);
+  const [planQty, setPlanQty] = useState(1);
   const efficiencyColor = getEfficiencyColor(product.efficiency);
 
   const chainSteps = expanded ? getChainBreakdown(product.id, 1, 0, new Set(), fishMinutes, ownedTreeIds) : [];
   const chainMinutes = expanded ? calcChainMinutes(product.id, new Set(), fishMinutes, ownedTreeIds) : 0;
   const craftingValue = calcCraftingValue(product);
+  const plan = (expanded && showPlanner) ? buildProductionPlan(product.id, planQty) : null;
 
   return (
     <TouchableOpacity
@@ -102,36 +108,117 @@ export function ProductCard({ product, rank, showRank, fishMinutes = FISH_CHAIN_
 
       {expanded && (
         <View style={styles.chain}>
-          <View style={styles.chainHeader}>
-            <Text style={styles.chainTitle}>Full production chain</Text>
-            <Text style={styles.chainTotal}>{formatTime(chainMinutes)} total</Text>
-          </View>
-          {chainSteps.map((step, i) => (
-            <View
-              key={`${step.itemId}-${i}`}
-              style={[
-                styles.chainRow,
-                { paddingLeft: 8 + step.depth * 16 },
-                step.isCriticalPath && styles.chainRowCritical,
-              ]}
+          {/* Tab bar: Chain | Planner */}
+          <View style={styles.tabRow}>
+            <TouchableOpacity
+              style={[styles.tab, !showPlanner && styles.tabActive]}
+              onPress={(e) => { e.stopPropagation?.(); setShowPlanner(false); }}
             >
-              <Text style={styles.chainIcon}>{step.icon}</Text>
-              <View style={styles.chainInfo}>
-                <Text style={[styles.chainName, step.isCriticalPath && styles.chainNameCritical]}>
-                  {step.quantity > 1 ? `${step.quantity}× ` : ''}{step.name}
+              <Text style={[styles.tabText, !showPlanner && styles.tabTextActive]}>⛓ Chain</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, showPlanner && styles.tabActive]}
+              onPress={(e) => { e.stopPropagation?.(); setShowPlanner(true); }}
+            >
+              <Text style={[styles.tabText, showPlanner && styles.tabTextActive]}>📋 Planner</Text>
+            </TouchableOpacity>
+          </View>
+
+          {!showPlanner ? (
+            <>
+              <View style={styles.chainHeader}>
+                <Text style={styles.chainTitle}>Full production chain</Text>
+                <Text style={styles.chainTotal}>{formatTime(chainMinutes)} total</Text>
+              </View>
+              {chainSteps.map((step, i) => (
+                <View
+                  key={`${step.itemId}-${i}`}
+                  style={[
+                    styles.chainRow,
+                    { paddingLeft: 8 + step.depth * 16 },
+                    step.isCriticalPath && styles.chainRowCritical,
+                  ]}
+                >
+                  <Text style={styles.chainIcon}>{step.icon}</Text>
+                  <View style={styles.chainInfo}>
+                    <Text style={[styles.chainName, step.isCriticalPath && styles.chainNameCritical]}>
+                      {step.quantity > 1 ? `${step.quantity}× ` : ''}{step.name}
+                    </Text>
+                  </View>
+                  <Text style={[styles.chainTime, step.isCriticalPath && styles.chainTimeCritical]}>
+                    {formatTime(step.ownMinutes)}
+                    {step.isCriticalPath ? ' ⚠' : ''}
+                  </Text>
+                </View>
+              ))}
+              <View style={styles.chainFooter}>
+                <Text style={styles.chainFooterText}>
+                  🪙 {product.sellPrice * product.quantityPerRun} ÷ {formatTime(chainMinutes)} = {product.coinsPerHour} coins/hr
                 </Text>
               </View>
-              <Text style={[styles.chainTime, step.isCriticalPath && styles.chainTimeCritical]}>
-                {formatTime(step.ownMinutes)}
-                {step.isCriticalPath ? ' ⚠' : ''}
+            </>
+          ) : (
+            <View>
+              {/* Quantity picker */}
+              <View style={styles.qtyRow}>
+                <TouchableOpacity
+                  style={styles.qtyBtn}
+                  onPress={(e) => { e.stopPropagation?.(); setPlanQty(Math.max(1, planQty - 1)); }}
+                >
+                  <Text style={styles.qtyBtnText}>−</Text>
+                </TouchableOpacity>
+                <Text style={styles.qtyValue}>{planQty}×</Text>
+                <TouchableOpacity
+                  style={styles.qtyBtn}
+                  onPress={(e) => { e.stopPropagation?.(); setPlanQty(planQty + 1); }}
+                >
+                  <Text style={styles.qtyBtnText}>+</Text>
+                </TouchableOpacity>
+                <View style={styles.qtyQuickBtns}>
+                  {QUICK_QTYS.map((q) => (
+                    <TouchableOpacity
+                      key={q}
+                      style={[styles.qtyQuick, planQty === q && styles.qtyQuickActive]}
+                      onPress={(e) => { e.stopPropagation?.(); setPlanQty(q); }}
+                    >
+                      <Text style={[styles.qtyQuickText, planQty === q && styles.qtyQuickTextActive]}>
+                        {q}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <Text style={styles.planHeading}>
+                To make {planQty}× {product.icon} {product.name}:
               </Text>
+
+              {plan && plan.craftNeeds.length > 0 && (
+                <>
+                  <Text style={styles.planSectionLabel}>⚙️ Also craft</Text>
+                  {plan.craftNeeds.map((c) => (
+                    <View key={c.itemId} style={styles.planRow}>
+                      <Text style={styles.planIcon}>{c.icon}</Text>
+                      <Text style={styles.planName}>{c.quantity}× {c.name}</Text>
+                      <Text style={styles.planMeta}>{c.machineEmoji} {formatTime(c.productionMinutes)} ea</Text>
+                    </View>
+                  ))}
+                </>
+              )}
+
+              {plan && plan.rawNeeds.length > 0 && (
+                <>
+                  <Text style={styles.planSectionLabel}>🌱 Farm / gather</Text>
+                  {plan.rawNeeds.map((r) => (
+                    <View key={r.itemId} style={styles.planRow}>
+                      <Text style={styles.planIcon}>{r.icon}</Text>
+                      <Text style={styles.planName}>{r.quantity}× {r.name}</Text>
+                    </View>
+                  ))}
+                </>
+              )}
             </View>
-          ))}
-          <View style={styles.chainFooter}>
-            <Text style={styles.chainFooterText}>
-              🪙 {product.sellPrice * product.quantityPerRun} ÷ {formatTime(chainMinutes)} = {product.coinsPerHour} coins/hr
-            </Text>
-          </View>
+          )}
         </View>
       )}
     </TouchableOpacity>
@@ -242,6 +329,32 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
+  tabRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    gap: 6,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 6,
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  tabActive: {
+    backgroundColor: Colors.primary + '18',
+    borderColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  tabTextActive: {
+    color: Colors.primary,
+  },
   chainHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -344,5 +457,96 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  // Planner styles
+  qtyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  qtyBtn: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  qtyBtnText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.primary,
+    lineHeight: 24,
+  },
+  qtyValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
+    minWidth: 36,
+    textAlign: 'center',
+  },
+  qtyQuickBtns: {
+    flexDirection: 'row',
+    gap: 4,
+    marginLeft: 4,
+  },
+  qtyQuick: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  qtyQuickActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  qtyQuickText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  qtyQuickTextActive: {
+    color: '#fff',
+  },
+  planHeading: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  planSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  planRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 3,
+  },
+  planIcon: {
+    fontSize: 14,
+    width: 20,
+    textAlign: 'center',
+  },
+  planName: {
+    flex: 1,
+    fontSize: 13,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  planMeta: {
+    fontSize: 11,
+    color: Colors.textSecondary,
   },
 });
