@@ -20,6 +20,7 @@ export interface Product {
   coinsPerHour: number;
   efficiency: 'high' | 'medium' | 'low';
   craftingProfit?: number;
+  markupPercent?: number;
   perRunValue?: number;
 }
 

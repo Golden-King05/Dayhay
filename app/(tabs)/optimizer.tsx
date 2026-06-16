@@ -58,6 +58,13 @@ export default function OptimizerScreen() {
         const bVal = b.kind === 'product' ? (b.data.craftingProfit ?? 0) : b.data.sellPrice;
         return dir(aVal, bVal);
       });
+    } else if (selectedSort === 'markupPercent') {
+      // Crops are raw goods (0% markup) — they sink to the bottom
+      all.sort((a, b) => {
+        const aVal = a.kind === 'product' ? (a.data.markupPercent ?? 0) : 0;
+        const bVal = b.kind === 'product' ? (b.data.markupPercent ?? 0) : 0;
+        return dir(aVal, bVal);
+      });
     } else if (selectedSort === 'perRunValue') {
       // For crops, per-run = sellPrice (one harvest per plot)
       // For products, per-run = sellPrice × quantityPerRun

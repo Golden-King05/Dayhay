@@ -17,6 +17,7 @@ interface SortOption {
 
 const SORT_OPTIONS: SortOption[] = [
   { key: 'coinsPerHour', label: 'Coins/Hr', icon: '⚡' },
+  { key: 'markupPercent', label: '% Gain', icon: '📈' },
   { key: 'perRunValue', label: 'Per Run', icon: '🌙' },
   { key: 'craftingProfit', label: 'Profit', icon: '💰' },
   { key: 'sellPrice', label: 'Price', icon: '🪙' },

@@ -9,9 +9,9 @@ function enrichProducts(fishMinutes: number): Product[] {
     const chainCPH = calcChainCPH(effectivePrice, chain);
     const efficiency: 'high' | 'medium' | 'low' =
       chainCPH >= 60 ? 'high' : chainCPH >= 25 ? 'medium' : 'low';
-    const { craftingProfit } = calcCraftingValue(p);
+    const { craftingProfit, markupPercent } = calcCraftingValue(p);
     const perRunValue = p.sellPrice * p.quantityPerRun;
-    return { ...p, coinsPerHour: chainCPH, efficiency, craftingProfit, perRunValue };
+    return { ...p, coinsPerHour: chainCPH, efficiency, craftingProfit, markupPercent, perRunValue };
   });
 }
 
@@ -23,11 +23,12 @@ export function getEnrichedProducts(fishMinutes: number): Product[] {
   return enrichProducts(fishMinutes);
 }
 
-export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired' | 'craftingProfit' | 'perRunValue';
+export type SortKey = 'coinsPerHour' | 'sellPrice' | 'productionMinutes' | 'levelRequired' | 'craftingProfit' | 'markupPercent' | 'perRunValue';
 export type SortOrder = 'asc' | 'desc';
 
 function getProductSortVal(p: Product, key: SortKey): number {
   if (key === 'craftingProfit') return p.craftingProfit ?? 0;
+  if (key === 'markupPercent') return p.markupPercent ?? 0;
   if (key === 'perRunValue') return p.perRunValue ?? (p.sellPrice * p.quantityPerRun);
   return p[key as keyof Product] as number;
 }
