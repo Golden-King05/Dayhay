@@ -1,19 +1,35 @@
 export interface Tree {
-  id: string;        // matches ingredient itemId used in products.ts
-  name: string;      // produce name (e.g. "Apple")
-  plantName: string; // display name (e.g. "Apple Tree")
+  id: string;
+  name: string;
+  plantName: string;
   icon: string;
   plantType: 'tree' | 'bush';
   cycleMinutes: number;
   sellPrice: number;
   levelRequired: number;
   quantityPerCycle: number;
-  coinsPerHour: number;
+  purchaseCost: number;
+  lifetimeCycles: number;   // 3 normal + 3 after free revival = 6
+  coinsPerHour: number;     // amortized: accounts for purchase cost
+  perCycleRevenue: number;  // sellPrice × quantityPerCycle (raw, before amortization)
+  amortizedNetPerCycle: number; // perCycleRevenue - purchaseCost/lifetimeCycles
+  paybackCycles: number;    // cycles until purchase cost is recovered
 }
 
-function cph(sellPrice: number, cycleMinutes: number, qty: number) {
-  if (sellPrice === 0) return 0;
-  return Math.round(((sellPrice * qty) / cycleMinutes) * 60 * 10) / 10;
+function amortizedCPH(
+  sellPrice: number,
+  cycleMinutes: number,
+  qty: number,
+  purchaseCost: number,
+  lifetimeCycles: number
+): number {
+  const netPerCycle = sellPrice * qty - purchaseCost / lifetimeCycles;
+  if (netPerCycle <= 0 || cycleMinutes === 0) return 0;
+  return Math.round((netPerCycle / cycleMinutes) * 60 * 10) / 10;
+}
+
+function payback(sellPrice: number, qty: number, purchaseCost: number): number {
+  return Math.ceil(purchaseCost / (sellPrice * qty));
 }
 
 export const trees: Tree[] = [
@@ -27,7 +43,12 @@ export const trees: Tree[] = [
     sellPrice: 39,
     levelRequired: 0,
     quantityPerCycle: 3,
-    coinsPerHour: cph(39, 960, 3),
+    purchaseCost: 160,
+    lifetimeCycles: 6,
+    perCycleRevenue: 39 * 3,
+    amortizedNetPerCycle: 39 * 3 - 160 / 6,
+    coinsPerHour: amortizedCPH(39, 960, 3, 160, 6),
+    paybackCycles: payback(39, 3, 160),
   },
   {
     id: 'cherry',
@@ -39,7 +60,12 @@ export const trees: Tree[] = [
     sellPrice: 68,
     levelRequired: 0,
     quantityPerCycle: 3,
-    coinsPerHour: cph(68, 1620, 3),
+    purchaseCost: 410,
+    lifetimeCycles: 6,
+    perCycleRevenue: 68 * 3,
+    amortizedNetPerCycle: 68 * 3 - 410 / 6,
+    coinsPerHour: amortizedCPH(68, 1620, 3, 410, 6),
+    paybackCycles: payback(68, 3, 410),
   },
   {
     id: 'coffee',
@@ -51,7 +77,12 @@ export const trees: Tree[] = [
     sellPrice: 64,
     levelRequired: 0,
     quantityPerCycle: 3,
-    coinsPerHour: cph(64, 1440, 3),
+    purchaseCost: 375,
+    lifetimeCycles: 6,
+    perCycleRevenue: 64 * 3,
+    amortizedNetPerCycle: 64 * 3 - 375 / 6,
+    coinsPerHour: amortizedCPH(64, 1440, 3, 375, 6),
+    paybackCycles: payback(64, 3, 375),
   },
   {
     id: 'cocoa',
@@ -63,7 +94,12 @@ export const trees: Tree[] = [
     sellPrice: 86,
     levelRequired: 0,
     quantityPerCycle: 3,
-    coinsPerHour: cph(86, 2040, 3),
+    purchaseCost: 550,
+    lifetimeCycles: 6,
+    perCycleRevenue: 86 * 3,
+    amortizedNetPerCycle: 86 * 3 - 550 / 6,
+    coinsPerHour: amortizedCPH(86, 2040, 3, 550, 6),
+    paybackCycles: payback(86, 3, 550),
   },
   {
     id: 'blackberry',
@@ -75,7 +111,12 @@ export const trees: Tree[] = [
     sellPrice: 82,
     levelRequired: 0,
     quantityPerCycle: 3,
-    coinsPerHour: cph(82, 1860, 3),
+    purchaseCost: 530,
+    lifetimeCycles: 6,
+    perCycleRevenue: 82 * 3,
+    amortizedNetPerCycle: 82 * 3 - 530 / 6,
+    coinsPerHour: amortizedCPH(82, 1860, 3, 530, 6),
+    paybackCycles: payback(82, 3, 530),
   },
   {
     id: 'blueberry',
@@ -87,7 +128,12 @@ export const trees: Tree[] = [
     sellPrice: 82,
     levelRequired: 0,
     quantityPerCycle: 3,
-    coinsPerHour: cph(82, 2040, 3),
+    purchaseCost: 550,
+    lifetimeCycles: 6,
+    perCycleRevenue: 82 * 3,
+    amortizedNetPerCycle: 82 * 3 - 550 / 6,
+    coinsPerHour: amortizedCPH(82, 2040, 3, 550, 6),
+    paybackCycles: payback(82, 3, 550),
   },
   {
     id: 'raspberry',
@@ -99,6 +145,11 @@ export const trees: Tree[] = [
     sellPrice: 46,
     levelRequired: 0,
     quantityPerCycle: 3,
-    coinsPerHour: cph(46, 1080, 3),
+    purchaseCost: 220,
+    lifetimeCycles: 6,
+    perCycleRevenue: 46 * 3,
+    amortizedNetPerCycle: 46 * 3 - 220 / 6,
+    coinsPerHour: amortizedCPH(46, 1080, 3, 220, 6),
+    paybackCycles: payback(46, 3, 220),
   },
 ];

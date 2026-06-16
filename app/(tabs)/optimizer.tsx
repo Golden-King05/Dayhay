@@ -10,8 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { crops } from '../../data/crops';
+import { trees } from '../../data/trees';
 import { ProductCard } from '../../components/ProductCard';
 import { CropCard } from '../../components/CropCard';
+import { TreeCard } from '../../components/TreeCard';
 import { FilterBar } from '../../components/FilterBar';
 import { getEnrichedProducts, sortProducts, filterByMachine, SortKey, OVERNIGHT_MIN_MINUTES } from '../../utils/optimizer';
 import { useFishSetting } from '../../hooks/useFishSetting';
@@ -19,9 +21,11 @@ import { formatTime } from '../../utils/optimizer';
 import { FISH_CHAIN_MINUTES } from '../../data/fishing';
 
 import { Product } from '../../data/products';
+import { Tree } from '../../data/trees';
 type ListItem =
   | { kind: 'product'; data: Product }
-  | { kind: 'crop'; data: (typeof crops)[0] };
+  | { kind: 'crop'; data: (typeof crops)[0] }
+  | { kind: 'tree'; data: Tree };
 
 export default function OptimizerScreen() {
   const [selectedSort, setSelectedSort] = useState<SortKey>('coinsPerHour');
@@ -37,66 +41,57 @@ export default function OptimizerScreen() {
     const productItems: ListItem[] = sortProducts(filteredProducts, selectedSort, sortOrder)
       .map((p) => ({ kind: 'product', data: p }));
 
-    // Only mix in crops for 'all' and 'overnight' (crops don't belong to a machine)
+    // Only mix in crops/trees for 'all' and 'overnight'
     if (selectedMachine !== 'all' && !isOvernight) return productItems;
 
     const eligibleCrops = isOvernight
       ? crops.filter((c) => c.growTimeMinutes >= OVERNIGHT_MIN_MINUTES)
       : crops;
-    const cropItems: ListItem[] = eligibleCrops.map((c) => ({ kind: 'crop', data: c }));
-    const all = [...productItems, ...cropItems];
 
-    // Sort the combined list
+    const cropItems: ListItem[] = eligibleCrops.map((c) => ({ kind: 'crop', data: c }));
+    const treeItems: ListItem[] = trees.map((t) => ({ kind: 'tree', data: t }));
+    const all: ListItem[] = [...productItems, ...cropItems, ...treeItems];
+
     const dir = (a: number, b: number) => sortOrder === 'desc' ? b - a : a - b;
-    if (selectedSort === 'coinsPerHour') {
-      all.sort((a, b) => dir(a.data.coinsPerHour, b.data.coinsPerHour));
-    } else if (selectedSort === 'sellPrice') {
-      all.sort((a, b) => dir(a.data.sellPrice, b.data.sellPrice));
-    } else if (selectedSort === 'craftingProfit') {
-      all.sort((a, b) => {
-        const aVal = a.kind === 'product' ? (a.data.craftingProfit ?? 0) : a.data.sellPrice;
-        const bVal = b.kind === 'product' ? (b.data.craftingProfit ?? 0) : b.data.sellPrice;
-        return dir(aVal, bVal);
-      });
-    } else if (selectedSort === 'markupPercent') {
-      // Crops are raw goods (0% markup) — they sink to the bottom
-      all.sort((a, b) => {
-        const aVal = a.kind === 'product' ? (a.data.markupPercent ?? 0) : 0;
-        const bVal = b.kind === 'product' ? (b.data.markupPercent ?? 0) : 0;
-        return dir(aVal, bVal);
-      });
-    } else if (selectedSort === 'perRunValue') {
-      // For crops, per-run = sellPrice (one harvest per plot)
-      // For products, per-run = sellPrice × quantityPerRun
-      all.sort((a, b) => {
-        const aVal = a.kind === 'product' ? (a.data.perRunValue ?? a.data.sellPrice) : a.data.sellPrice;
-        const bVal = b.kind === 'product' ? (b.data.perRunValue ?? b.data.sellPrice) : b.data.sellPrice;
-        return dir(aVal, bVal);
-      });
-    } else if (selectedSort === 'productionMinutes') {
-      all.sort((a, b) => dir(
-        a.kind === 'product' ? a.data.productionMinutes : a.data.growTimeMinutes,
-        b.kind === 'product' ? b.data.productionMinutes : b.data.growTimeMinutes,
-      ));
-    }
+
+    const getVal = (item: ListItem): number => {
+      if (item.kind === 'product') {
+        if (selectedSort === 'coinsPerHour') return item.data.coinsPerHour;
+        if (selectedSort === 'sellPrice') return item.data.sellPrice;
+        if (selectedSort === 'perRunValue') return item.data.perRunValue ?? item.data.sellPrice;
+        if (selectedSort === 'craftingProfit') return item.data.craftingProfit ?? 0;
+        if (selectedSort === 'markupPercent') return item.data.markupPercent ?? 0;
+        if (selectedSort === 'productionMinutes') return item.data.productionMinutes;
+        return 0;
+      }
+      if (item.kind === 'tree') {
+        if (selectedSort === 'coinsPerHour') return item.data.coinsPerHour;
+        if (selectedSort === 'sellPrice') return item.data.sellPrice;
+        if (selectedSort === 'perRunValue') return item.data.perCycleRevenue;
+        if (selectedSort === 'productionMinutes') return item.data.cycleMinutes;
+        return 0; // trees have no craftingProfit/markupPercent
+      }
+      // crop
+      if (selectedSort === 'coinsPerHour') return item.data.coinsPerHour;
+      if (selectedSort === 'sellPrice') return item.data.sellPrice;
+      if (selectedSort === 'perRunValue') return item.data.sellPrice;
+      if (selectedSort === 'productionMinutes') return item.data.growTimeMinutes;
+      return 0;
+    };
+
+    all.sort((a, b) => dir(getVal(a), getVal(b)));
 
     return all;
   }, [selectedSort, selectedMachine, sortOrder, fishMinutes, isOvernight]);
 
   const highCount = rankedList.filter((i) =>
-    i.kind === 'product'
-      ? i.data.efficiency === 'high'
-      : i.data.coinsPerHour >= 60
+    i.kind === 'product' ? i.data.efficiency === 'high' : i.data.coinsPerHour >= 60
   ).length;
   const medCount = rankedList.filter((i) =>
-    i.kind === 'product'
-      ? i.data.efficiency === 'medium'
-      : i.data.coinsPerHour >= 25 && i.data.coinsPerHour < 60
+    i.kind === 'product' ? i.data.efficiency === 'medium' : (i.data.coinsPerHour >= 25 && i.data.coinsPerHour < 60)
   ).length;
   const lowCount = rankedList.filter((i) =>
-    i.kind === 'product'
-      ? i.data.efficiency === 'low'
-      : i.data.coinsPerHour < 25
+    i.kind === 'product' ? i.data.efficiency === 'low' : i.data.coinsPerHour < 25
   ).length;
 
   return (
@@ -153,6 +148,15 @@ export default function OptimizerScreen() {
             return (
               <CropCard
                 crop={item.data}
+                rank={index + 1}
+                showRank={isTopThree}
+              />
+            );
+          }
+          if (item.kind === 'tree') {
+            return (
+              <TreeCard
+                tree={item.data}
                 rank={index + 1}
                 showRank={isTopThree}
               />
