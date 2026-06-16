@@ -121,7 +121,7 @@ export function ProductCard({ product, rank, showRank }: ProductCardProps) {
           })()}
           <View style={styles.chainFooter}>
             <Text style={styles.chainFooterText}>
-              🪙 {product.sellPrice} ÷ {formatTime(chainMinutes)} = {product.coinsPerHour} coins/hr
+              🪙 {product.sellPrice * product.quantityPerRun} ÷ {formatTime(chainMinutes)} = {product.coinsPerHour} coins/hr
             </Text>
           </View>
         </View>

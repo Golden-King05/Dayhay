@@ -9,9 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
-import { products } from '../../data/products';
 import { ProductCard } from '../../components/ProductCard';
-import { searchProducts, sortProducts } from '../../utils/optimizer';
+import { products, searchProducts, sortProducts } from '../../utils/optimizer';
 
 export default function ProductsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
