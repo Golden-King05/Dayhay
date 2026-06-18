@@ -144,4 +144,12 @@ export const machines: Machine[] = [
     levelRequired: 0,
     description: 'Crafts jewelry from precious metals and gems',
   },
+  {
+    id: 'doner_kebab_stand',
+    name: 'Döner Kebab Stand',
+    icon: 'doner_kebab_stand',
+    emoji: '🌯',
+    levelRequired: 0,
+    description: 'Makes döner wraps and kebabs',
+  },
 ];

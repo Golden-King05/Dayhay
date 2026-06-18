@@ -1344,6 +1344,42 @@ const rawProducts = [
       { itemId: 'gem', itemName: 'Gem', quantity: 1, icon: '💎' },
     ],
   },
+  // ── Döner Kebab Stand ──────────────────────────────────────────────────────
+  {
+    id: 'lamb_doner_wrap',
+    name: 'Lamb Döner Wrap',
+    icon: '🌯',
+    machineId: 'doner_kebab_stand',
+    machineName: 'Döner Kebab Stand',
+    machineEmoji: '🌯',
+    productionMinutes: 20,
+    sellPrice: 172,
+    levelRequired: 0,
+    quantityPerRun: 1,
+    ingredients: [
+      { itemId: 'lamb_skewer', itemName: 'Lamb Skewer', quantity: 1, icon: '🍖' },
+      { itemId: 'tomatoes', itemName: 'Tomato', quantity: 1, icon: '🍅' },
+      { itemId: 'bread', itemName: 'Bread', quantity: 1, icon: '🍞' },
+    ],
+  },
+  {
+    id: 'spicy_bean_doner',
+    name: 'Spicy Bean Döner',
+    icon: '🌯',
+    machineId: 'doner_kebab_stand',
+    machineName: 'Döner Kebab Stand',
+    machineEmoji: '🌯',
+    productionMinutes: 60, // TODO: confirm production time
+    sellPrice: 471,
+    levelRequired: 0,
+    quantityPerRun: 1,
+    ingredients: [
+      { itemId: 'cornbread', itemName: 'Cornbread', quantity: 1, icon: '🍞' },
+      { itemId: 'soybeans', itemName: 'Beans', quantity: 3, icon: '🫘' },
+      { itemId: 'chili_pepper', itemName: 'Chili Pepper', quantity: 3, icon: '🌶️' },
+      { itemId: 'cheese', itemName: 'Cheese', quantity: 2, icon: '🧀' },
+    ],
+  },
   // ── Honey Extractor ────────────────────────────────────────────────────────
   {
     id: 'honey',
