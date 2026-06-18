@@ -1369,13 +1369,13 @@ const rawProducts = [
     machineId: 'doner_kebab_stand',
     machineName: 'Döner Kebab Stand',
     machineEmoji: '🌯',
-    productionMinutes: 60, // TODO: confirm production time
+    productionMinutes: 30,
     sellPrice: 471,
     levelRequired: 0,
     quantityPerRun: 1,
     ingredients: [
       { itemId: 'cornbread', itemName: 'Cornbread', quantity: 1, icon: '🍞' },
-      { itemId: 'soybeans', itemName: 'Beans', quantity: 3, icon: '🫘' },
+      { itemId: 'black_beans', itemName: 'Black Beans', quantity: 3, icon: '🫘' },
       { itemId: 'chili_pepper', itemName: 'Chili Pepper', quantity: 3, icon: '🌶️' },
       { itemId: 'cheese', itemName: 'Cheese', quantity: 2, icon: '🧀' },
     ],
