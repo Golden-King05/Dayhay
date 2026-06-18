@@ -608,6 +608,24 @@ const rawProducts = [
       { itemId: 'cream', itemName: 'Cream', quantity: 1, icon: '🫙' },
     ],
   },
+  {
+    id: 'raspberry_mocha',
+    name: 'Raspberry Mocha',
+    icon: '🧋',
+    machineId: 'coffee_kiosk',
+    machineName: 'Coffee Kiosk',
+    machineEmoji: '☕',
+    productionMinutes: 30,
+    sellPrice: 259,
+    levelRequired: 0,
+    quantityPerRun: 1,
+    ingredients: [
+      { itemId: 'coffee', itemName: 'Coffee Bean', quantity: 1, icon: '☕' },
+      { itemId: 'cocoa', itemName: 'Cocoa', quantity: 1, icon: '🍫' },
+      { itemId: 'cream', itemName: 'Cream', quantity: 1, icon: '🫙' },
+      { itemId: 'raspberry', itemName: 'Raspberry', quantity: 1, icon: '🍓' },
+    ],
+  },
   // ── Jam Maker ──────────────────────────────────────────────
   {
     id: 'raspberry_jam',
